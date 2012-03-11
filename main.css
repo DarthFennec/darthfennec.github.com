@@ -1,0 +1,52 @@
+body {
+  margin: 0;
+  background: #cccccc url('http://spinnychair.co.cc/img/grad.png') repeat-x;
+  font-family: Helvetica, Arial, FreeSans, san-serif;
+  color: #000000;
+}
+
+#ribbon {
+  position: absolute;
+  top: 0;
+  right: 0;
+  border: 0;
+}
+
+#container {
+  margin: 0 auto;
+  width: 800px;
+}
+
+#title {
+  background: url('http://spinnychair.co.cc/img/logo.png') no-repeat;
+  padding-left: 50px;
+}
+
+h1 {
+  font-size: 3em;
+  color: #333333;
+  margin-bottom: 3px;
+}
+
+h2 {
+  font-size: 1.5em;
+  color: #333333;
+}
+
+a {
+  color: #333333;
+  text-decoration: none;
+}
+
+.description {
+  font-size: 1.2em;
+  margin-bottom: 30px;
+  margin-top: 30px;
+  font-style: italic;
+}
+
+hr {
+  border: 0;
+  width: 80%;
+  border-bottom: 1px solid #aaa
+}
