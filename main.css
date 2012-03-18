@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: #cccccc url('http://spinnychair.co.cc/img/grad.png') repeat-x;
+  background: #cccccc url('img/grad.png') repeat-x;
   font-family: Helvetica, Arial, FreeSans, san-serif;
   color: #000000;
 }
@@ -18,7 +18,7 @@ body {
 }
 
 #title {
-  background: url('http://spinnychair.co.cc/img/logo.png') no-repeat;
+  background: url('img/logo.png') no-repeat;
   padding-left: 50px;
 }
 
