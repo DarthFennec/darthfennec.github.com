@@ -50,3 +50,25 @@ hr {
   width: 80%;
   border-bottom: 1px solid #aaa
 }
+
+#miskatonic > div {
+  background: #dddddd;
+  height: 500px;
+  width: 700px;
+  text-align: center;
+  color: #bb0000;
+  padding: 50px;
+  font-weight: bold;
+  font-size: 20px;
+  line-height: 70px;
+}
+
+#miskatonic > div > div > div {
+  display: inline-block;
+  margin: 50px;
+  line-height: normal;
+}
+
+#footer {
+  height: 50px;
+}
