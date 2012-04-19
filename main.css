@@ -1,3 +1,7 @@
+img {
+  border: 0;
+}
+
 body {
   margin: 0;
   background: #cccccc url('img/grad.png') repeat-x;
@@ -38,7 +42,7 @@ a {
   text-decoration: none;
 }
 
-.description {
+#description {
   font-size: 1.2em;
   margin-bottom: 30px;
   margin-top: 30px;
@@ -51,7 +55,7 @@ hr {
   border-bottom: 1px solid #aaa
 }
 
-#miskatonic > div {
+#alt {
   background: #dddddd;
   height: 500px;
   width: 700px;
@@ -63,10 +67,12 @@ hr {
   line-height: 70px;
 }
 
-#miskatonic > div > div > div {
-  display: inline-block;
-  margin: 50px;
+#alt a {
+  display: block;
+  width: 200px;
+  height: 150px;
   line-height: normal;
+  text-align: center;
 }
 
 #footer {
