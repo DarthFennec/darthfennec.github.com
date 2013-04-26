@@ -26,7 +26,7 @@ Since setting the <em>width</em> of a canvas resets its state machine, the state
     <span class="nv">serv.global.s = </span><span class="p">[</span><span class="nx">s</span><span class="p">.</span><span class="nx">x</span><span class="p">,</span> <span class="nx">s</span><span class="p">.</span><span class="nx">y</span><span class="p">]</span>
     <span class="nv">t = </span><span class="nx">@buffer</span><span class="p">.</span><span class="nx">size</span><span class="p">()</span>
     <span class="k">if</span> <span class="nx">s</span><span class="p">.</span><span class="nx">x</span> <span class="o">isnt</span> <span class="nx">t</span><span class="p">.</span><span class="nx">x</span> <span class="o">or</span> <span class="nx">s</span><span class="p">.</span><span class="nx">y</span> <span class="o">isnt</span> <span class="nx">t</span><span class="p">.</span><span class="nx">y</span>
-      <span class="nx">serv</span><span class="p">.</span><span class="nx">screen</span><span class="p">.</span><span class="nx">resize</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">s</span>
+      <span class="nx">serv</span><span class="p">.</span><span class="nx">screen</span><span class="p">.</span><span class="nx">resize</span> <span class="s">&quot;display&quot;</span><span class="p">,</span> <span class="nx">s</span>
       <span class="nx">@screen</span><span class="p">.</span><span class="nx">size</span> <span class="nx">s</span>
       <span class="nx">@buffer</span><span class="p">.</span><span class="nx">size</span> <span class="nx">s</span>
       <span class="vi">@buffer.ctx.fillStyle = </span><span class="nx">@bgcolor</span>
