@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - save.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>save.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>Savestate management system.</strong></p>
+<p>Use localStorage to save and load a JSON string, representing the current
+state of the game. Used to save a player’s progress between sessions.</p>
+<ul>
+<li>Save global variables and states used to track a player’s progress.</li>
+<li>Save the location of the player within the scene node tree.</li>
+<li>Save the position and behavior of all objects in each scene.</li>
+</ul>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">savehandler</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@cansaveload</span>)</span> -&gt;</span></pre></div>
+
+
+
+<p>Check to see if a valid state exists in localStorage.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">validate</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-keyword">try</span>
+      JSON.parse localStorage.savestate
+      <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">catch</span> e <span class="hljs-keyword">then</span> <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>Gather state data from the game, stringify, and store in localStorage.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>: <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span>
+    obj = <span class="hljs-attribute">global</span>: serv.<span class="hljs-built_in">global</span>
+    obj.audio = serv.audio.savestate()
+    obj.stack = serv.state.savestate()
+    obj.local = <span class="hljs-keyword">for</span> rend <span class="hljs-keyword">in</span> serv.engine.rends <span class="hljs-keyword">when</span> rend.savestate? <span class="hljs-keyword">then</span> rend.savestate()
+    localStorage.savestate = JSON.stringify obj
+    n</pre></div>
+
+
+
+<p>Parse localStorage and distribute save data into the game.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span>
+    serv.reset()
+    obj = JSON.parse localStorage.savestate
+    serv.audio.mute obj.<span class="hljs-built_in">global</span>.m
+    serv.engine.resize <span class="hljs-keyword">new</span> vect obj.<span class="hljs-built_in">global</span>.s[<span class="hljs-number">0</span>], obj.<span class="hljs-built_in">global</span>.s[<span class="hljs-number">1</span>]
+    serv.scene.loadstate obj.stack
+<span class="hljs-function">    <span class="hljs-title">waitforload</span> = -&gt;</span>
+      <span class="hljs-keyword">if</span> obj.stack.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> serv.load.callbacks.push <span class="hljs-function">-&gt;</span>
+        rend.loadstate obj.local.shift() <span class="hljs-keyword">for</span> rend <span class="hljs-keyword">in</span> serv.engine.rends <span class="hljs-keyword">when</span> rend.loadstate?
+        serv.audio.loadstate obj.audio
+      <span class="hljs-keyword">else</span> serv.load.callbacks.push waitforload
+    serv.load.callbacks.push waitforload
+    n</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

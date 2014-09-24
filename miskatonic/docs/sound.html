@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - sound.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>sound.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The audio server system.</strong></p>
+<ul>
+<li>Keep track of all sounds being currently used. Organize them in a stack
+of lists. Each list in the stack represents a scene node in the tree,
+and the collection of sounds loaded with that scene node. This makes
+it easy to automatically unload sounds, without unloading the wrong ones.</li>
+<li>Most of the engine depends on stack blocking: to pause the game or wait
+for things to load, the render functions are simply ignored, because the
+default behavior of graphics is to do nothing. However, the default behavior
+of audio is to continue to play, so stack blocking doesn’t work.<br>This class helps to abstract stack blocking into the audio system.
+Each <a href="audio.html">audio object</a> is required to run <em>step</em> each frame
+to continue playing. When the stack is blocked, the <em>step</em> functions
+won’t be run. This system automatically plays and pauses sounds as it
+detects changes in how frequently the <em>step</em> function is run.</li>
+<li>Provide global volume and mute functions, which affect all loaded sounds.</li>
+</ul>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">soundhandler</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@soundext</span>)</span> -&gt;</span>
+    <span class="hljs-property">@volume</span> = <span class="hljs-number">1</span>
+    <span class="hljs-property">@volnew</span> = -<span class="hljs-number">1</span>
+    <span class="hljs-property">@muted</span> = <span class="hljs-literal">no</span>
+    <span class="hljs-property">@list</span> = []
+    serv.load.filetype[<span class="hljs-string">"snd/"</span>] = <span class="hljs-function"><span class="hljs-params">(url)</span> -&gt;</span>
+      newf = serv.audio.add url + serv.audio.soundext
+      <span class="hljs-keyword">if</span> serv.audio.soundext <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+        serv.load.loadcount.push newf
+        newf.data.addEventListener <span class="hljs-string">"error"</span>,<span class="hljs-function"> -&gt;</span>
+          newf.data = -<span class="hljs-number">1</span>
+          serv.load.err newf, url + serv.audio.soundext
+        newf.data.addEventListener <span class="hljs-string">"canplaythrough"</span>,<span class="hljs-function"> -&gt;</span> serv.load.finish newf
+      newf</pre></div>
+
+
+
+<p>Add a sound to the top list in the stack.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">add</span>: <span class="hljs-function"><span class="hljs-params">(sndurl)</span> -&gt;</span>
+    newsound = <span class="hljs-keyword">new</span> audio sndurl
+    <span class="hljs-property">@list</span>[<span class="hljs-number">0</span>].push newsound
+    newsound</pre></div>
+
+
+
+<p>Add an empty list to the top of the stack.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">push</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@list</span>.unshift []</pre></div>
+
+
+
+<p>Clear the entire stack, except the bottom list. Used when resetting.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">erase</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@clear</span>() <span class="hljs-keyword">for</span> v, i <span class="hljs-keyword">in</span> <span class="hljs-property">@list</span> <span class="hljs-keyword">when</span> i <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Stop and remove all sounds in the top list of the stack.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">clear</span>:<span class="hljs-function"> -&gt;</span> sound.stop() <span class="hljs-keyword">for</span> sound <span class="hljs-keyword">in</span> <span class="hljs-property">@list</span>.shift()</pre></div>
+
+
+
+<p>Set global mute, and set the flag for the change to take effect.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">mute</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@muted</span>)</span> -&gt;</span>
+    serv.<span class="hljs-built_in">global</span>.m = <span class="hljs-property">@muted</span>
+    <span class="hljs-property">@volnew</span> = -<span class="hljs-number">1</span></pre></div>
+
+
+
+<p>Check whether each sound has started or stopped stepping, usually due
+to a change in the stack blocking. Pause or play the sound accordingly. Change
+the volume on all sounds, if the global volume or mute has been changed. </p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-property">@list</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> j
+      i.pause() <span class="hljs-keyword">if</span> i.oldset <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> i.newset
+      i.unpause() <span class="hljs-keyword">if</span> i.newset <span class="hljs-keyword">and</span> <span class="hljs-keyword">not</span> i.oldset
+      i.oldset = i.newset
+      i.newset = <span class="hljs-literal">no</span>
+      i.fade() <span class="hljs-keyword">if</span> <span class="hljs-property">@volnew</span> <span class="hljs-keyword">isnt</span> <span class="hljs-property">@volume</span>
+    <span class="hljs-property">@volnew</span> = <span class="hljs-property">@volume</span>
+    <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>Gather and return audio data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span>
+    ret = [<span class="hljs-property">@volume</span>]
+    <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> <span class="hljs-property">@list</span> <span class="hljs-keyword">then</span> ret.push (<span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> j
+      <span class="hljs-keyword">if</span> i.sndmode <span class="hljs-keyword">isnt</span> i.mode.pause <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> i.ii <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> -<span class="hljs-number">1</span>
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> i.datamode <span class="hljs-keyword">is</span> i.mode.pause <span class="hljs-keyword">and</span> i.altdatamode <span class="hljs-keyword">is</span> i.mode.pause
+        Math.min i.data.currentTime, i.altdata.currentTime
+      <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> i.datamode <span class="hljs-keyword">is</span> i.mode.pause <span class="hljs-keyword">then</span> i.data.currentTime
+      <span class="hljs-keyword">else</span> i.altdata.currentTime)
+    ret</pre></div>
+
+
+
+<p>Set all audio data properly.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    <span class="hljs-property">@volume</span> = state.shift()
+    <span class="hljs-property">@volnew</span> = -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">for</span> j, k <span class="hljs-keyword">in</span> <span class="hljs-property">@list</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">for</span> i, h <span class="hljs-keyword">in</span> j
+      <span class="hljs-keyword">if</span> i.sndmode <span class="hljs-keyword">is</span> i.mode.stop <span class="hljs-keyword">and</span> state[k][h] <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+        i.data.currentTime = state[k][h] <span class="hljs-keyword">if</span> state[k][h] &gt; <span class="hljs-number">0</span>
+        i.play()
+        i.pause()
+      <span class="hljs-keyword">if</span> i.sndmode <span class="hljs-keyword">isnt</span> i.mode.stop <span class="hljs-keyword">and</span> state[k][h] <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> i.stop()
+    <span class="hljs-literal">no</span></pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

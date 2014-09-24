@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - main.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>main.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p>Global singleton, to contain service objects and common global variables.</p>
+
+
+<div class='highlight'><pre>serv = {}</pre></div>
+
+
+
+<p>Initial function. Create and set up a minimal working engine object,
+bind its IO to the DOM, and load the root scene.</p>
+
+
+<div class='highlight'><pre><span class="hljs-built_in">window</span>.o<span class="hljs-function"><span class="hljs-title">nload</span> = -&gt;</span>
+  serv.screen = <span class="hljs-keyword">new</span> screenhandler [<span class="hljs-string">"display"</span>, <span class="hljs-string">"miskatonic"</span>, <span class="hljs-string">"errorbox"</span>]
+  screen = <span class="hljs-keyword">new</span> surface serv.screen.elem.miskatonic
+  serv.screen.getsysteminfo()
+  <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> serv.screen.basicsupport <span class="hljs-keyword">then</span> serv.screen.unwrap <span class="hljs-string">"miskatonic"</span> <span class="hljs-keyword">else</span>
+    keymap = <span class="hljs-attribute">up</span>: [<span class="hljs-number">38</span>, <span class="hljs-number">87</span>, <span class="hljs-number">90</span>, <span class="hljs-number">188</span>], <span class="hljs-attribute">left</span>: [<span class="hljs-number">37</span>, <span class="hljs-number">65</span>, <span class="hljs-number">81</span>], <span class="hljs-attribute">down</span>: [<span class="hljs-number">40</span>, <span class="hljs-number">79</span>, <span class="hljs-number">83</span>], <span class="hljs-attribute">right</span>: [<span class="hljs-number">39</span>, <span class="hljs-number">68</span>, <span class="hljs-number">69</span>], <span class="hljs-attribute">run</span>: [<span class="hljs-number">16</span>], <span class="hljs-attribute">act</span>: [<span class="hljs-number">13</span>, <span class="hljs-number">32</span>], <span class="hljs-attribute">pause</span>: [<span class="hljs-number">27</span>, <span class="hljs-number">80</span>]
+    serv.<span class="hljs-built_in">global</span> = <span class="hljs-attribute">m</span>: <span class="hljs-literal">no</span>, <span class="hljs-attribute">s</span>: [<span class="hljs-number">800</span>, <span class="hljs-number">600</span>]
+    serv.load = <span class="hljs-keyword">new</span> loader
+    serv.save = <span class="hljs-keyword">new</span> savehandler serv.screen.cansaveload
+    serv.audio = <span class="hljs-keyword">new</span> soundhandler serv.screen.soundext
+    serv.extern = <span class="hljs-keyword">new</span> extscene
+    serv.r<span class="hljs-function"><span class="hljs-title">eset</span> = -&gt;</span>
+      serv.audio.erase()
+      serv.state = serv.scene
+    serv.scene = <span class="hljs-keyword">new</span> scenenode [<span class="hljs-string">"txt/title.json"</span>, <span class="hljs-string">"txt/scene.json"</span>],
+      [<span class="hljs-string">"img/text"</span>, <span class="hljs-string">"img/pause"</span>, <span class="hljs-string">"snd/next"</span>, <span class="hljs-string">"snd/last"</span>, <span class="hljs-string">"snd/omenu"</span>, <span class="hljs-string">"snd/cmenu"</span>, <span class="hljs-string">"txt/pause.json"</span>]<span class="hljs-function">
+      -&gt;</span>
+        <span class="hljs-property">@canreeval</span> = <span class="hljs-literal">no</span>
+        surf = <span class="hljs-keyword">new</span> surface <span class="hljs-keyword">new</span> vect <span class="hljs-number">656</span>, <span class="hljs-number">208</span>
+        surf.ctx.fillStyle = <span class="hljs-string">"#000000"</span>
+        surf.ctx.globalAlpha = <span class="hljs-number">0.7</span>
+        surf.clear <span class="hljs-literal">no</span>
+        surf.ctx.beginPath()
+        surf.ctx.arc <span class="hljs-number">16</span>, <span class="hljs-number">64</span>, <span class="hljs-number">16</span>, <span class="hljs-number">3</span>*Math.PI/<span class="hljs-number">2</span>, Math.PI, <span class="hljs-literal">yes</span>
+        surf.ctx.arc <span class="hljs-number">16</span>, <span class="hljs-number">192</span>, <span class="hljs-number">16</span>, Math.PI, Math.PI/<span class="hljs-number">2</span>, <span class="hljs-literal">yes</span>
+        surf.ctx.arc <span class="hljs-number">640</span>, <span class="hljs-number">192</span>, <span class="hljs-number">16</span>, Math.PI/<span class="hljs-number">2</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">yes</span>
+        surf.ctx.arc <span class="hljs-number">640</span>, <span class="hljs-number">64</span>, <span class="hljs-number">16</span>, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>*Math.PI/<span class="hljs-number">2</span>, <span class="hljs-literal">yes</span>
+        surf.ctx.fill()
+        surf.ctx.globalAlpha = <span class="hljs-number">1.0</span>
+        serv.getai = <span class="hljs-keyword">new</span> aiscripts
+        serv.inscenemgr = <span class="hljs-keyword">new</span> scenehandler
+        serv.outscenemgr = <span class="hljs-keyword">new</span> scenehandler
+        serv.cutscenemgr = <span class="hljs-keyword">new</span> cutscenehandler <span class="hljs-property">@file</span>[<span class="hljs-number">0</span>], surf, (<span class="hljs-keyword">new</span> rect <span class="hljs-number">1</span>, <span class="hljs-number">1</span>/<span class="hljs-number">3</span>, <span class="hljs-number">38</span>, <span class="hljs-number">4</span>), (<span class="hljs-keyword">new</span> rect <span class="hljs-number">16</span>, <span class="hljs-number">48</span>, <span class="hljs-number">32</span>, <span class="hljs-number">32</span>), (<span class="hljs-keyword">new</span> vect <span class="hljs-number">0</span>, <span class="hljs-number">124</span>), <span class="hljs-property">@file</span>[<span class="hljs-number">2</span>], <span class="hljs-property">@file</span>[<span class="hljs-number">3</span>]
+        pausescene = <span class="hljs-keyword">new</span> cutscenehandler <span class="hljs-property">@file</span>[<span class="hljs-number">0</span>], <span class="hljs-property">@file</span>[<span class="hljs-number">1</span>], (<span class="hljs-keyword">new</span> rect <span class="hljs-number">41</span>/<span class="hljs-number">3</span>, <span class="hljs-number">5</span>, <span class="hljs-number">38</span>, <span class="hljs-number">4</span>), (<span class="hljs-keyword">new</span> rect <span class="hljs-number">16</span>, <span class="hljs-number">48</span>, <span class="hljs-number">32</span>, <span class="hljs-number">32</span>), (<span class="hljs-keyword">new</span> vect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>), <span class="hljs-property">@file</span>[<span class="hljs-number">2</span>], <span class="hljs-property">@file</span>[<span class="hljs-number">5</span>]
+        serv.pausemgr = <span class="hljs-keyword">new</span> pauser serv.engine.screen, <span class="hljs-property">@file</span>[<span class="hljs-number">6</span>].txt, pausescene, <span class="hljs-property">@file</span>[<span class="hljs-number">4</span>], <span class="hljs-property">@file</span>[<span class="hljs-number">5</span>]
+        serv.engine.rends.push serv.pausemgr, serv.cutscenemgr, serv.inscenemgr, serv.outscenemgr
+<span class="hljs-function">      <span class="hljs-params">(idx)</span> -&gt;</span> <span class="hljs-keyword">if</span> idx <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@initchild</span> (<span class="hljs-keyword">if</span> idx + <span class="hljs-number">1</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@child</span>.length <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> idx + <span class="hljs-number">1</span>)
+    serv.engine = <span class="hljs-keyword">new</span> engine [serv.load], screen, keymap
+    <span class="hljs-built_in">document</span>.addEventListener <span class="hljs-string">"keydown"</span>, <span class="hljs-function"><span class="hljs-params">(e)</span> -&gt;</span> serv.engine.input (<span class="hljs-function">-&gt;</span> e.preventDefault()), e.keyCode, <span class="hljs-number">1</span>
+    <span class="hljs-built_in">document</span>.addEventListener <span class="hljs-string">"keyup"</span>, <span class="hljs-function"><span class="hljs-params">(e)</span> -&gt;</span> serv.engine.input (<span class="hljs-function">-&gt;</span> e.preventDefault()), e.keyCode, -<span class="hljs-number">1</span>
+    serv.screen.animate <span class="hljs-function">-&gt;</span> serv.engine.step()</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

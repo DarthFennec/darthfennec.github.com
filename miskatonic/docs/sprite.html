@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - sprite.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>sprite.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The general sprite implementation.</strong></p>
+<ul>
+<li>sheet: The spritesheet.</li>
+<li>area: The position and size of the sprite.</li>
+<li>carea: The relative collision rectangle of the sprite.</li>
+<li>len: Animation length for each mode.</li>
+<li>speed: Movement speed for each mode.</li>
+<li>solid: <em>true</em> if the sprite is solid.</li>
+<li>active: <em>true</em> if the sprite can move and collide.</li>
+<li>vector: The direction the sprite is pointing.</li>
+<li>mode: The mode (standing, walking, running, etc).</li>
+<li>frame: The animation frame index.</li>
+<li>focus: <em>true</em> if the camera centers on this sprite.</li>
+<li>aiscripts: A list of callback functions to call under various circumstances.</li>
+</ul>
+<p>Sprites can represent anything from maps to player characters to NPCs
+to invisible trigger fields to interactive stationary objects, etc etc.
+Everything in the scene can be represented by a sprite.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">sprite</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(args)</span> -&gt;</span>
+    def =
+      sheet : <span class="hljs-number">0</span>
+      area : <span class="hljs-keyword">new</span> rect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+      carea : <span class="hljs-keyword">new</span> rect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+      len : []
+      speed : []
+      solid : <span class="hljs-literal">no</span>
+      active : <span class="hljs-literal">no</span>
+      vector : <span class="hljs-keyword">new</span> angle <span class="hljs-string">"spr"</span>, <span class="hljs-number">0</span>
+      mode : <span class="hljs-number">0</span>
+      frame : <span class="hljs-number">0</span>
+      focus : <span class="hljs-literal">no</span>
+      aiscripts : {}
+    <span class="hljs-property">@id</span> = args.id ? <span class="hljs-string">""</span>
+    @[prop] = args[prop] ? def[prop] <span class="hljs-keyword">for</span> prop <span class="hljs-keyword">of</span> def
+    <span class="hljs-property">@aiscripts</span>.sprite = <span class="hljs-keyword">this</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@aiscripts</span> <span class="hljs-keyword">isnt</span> {}
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@sheet</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-property">@id</span> = <span class="hljs-property">@sheet</span>.buf.src.slice (<span class="hljs-number">1</span> + <span class="hljs-property">@sheet</span>.buf.src.lastIndexOf <span class="hljs-string">"/"</span>), -<span class="hljs-number">4</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@id</span> <span class="hljs-keyword">is</span> <span class="hljs-string">""</span>
+      tmp = <span class="hljs-property">@sheet</span>
+      <span class="hljs-property">@sheet</span> = <span class="hljs-keyword">new</span> surface <span class="hljs-keyword">new</span> vect <span class="hljs-number">8</span>*<span class="hljs-property">@area</span>.s.x, tmp.dims.y
+      <span class="hljs-property">@sheet</span>.ctx.scale -<span class="hljs-number">1</span>, <span class="hljs-number">1</span>
+      <span class="hljs-property">@sheet</span>.drawImage tmp, <span class="hljs-property">@area</span>.s.x, <span class="hljs-number">0</span>, -<span class="hljs-number">3</span>*<span class="hljs-property">@area</span>.s.x, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>*<span class="hljs-property">@area</span>.s.x, tmp.dims.y
+      <span class="hljs-property">@sheet</span>.ctx.scale -<span class="hljs-number">1</span>, <span class="hljs-number">1</span>
+      <span class="hljs-property">@sheet</span>.drawImage tmp, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-number">3</span>*<span class="hljs-property">@area</span>.s.x, <span class="hljs-number">0</span>, <span class="hljs-number">5</span>*<span class="hljs-property">@area</span>.s.x, tmp.dims.y</pre></div>
+
+
+
+<p>Update <em>area</em> and <em>frame</em>.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">step</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@sheet</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      vect = <span class="hljs-property">@vector</span>.get <span class="hljs-string">"vlc"</span>
+      <span class="hljs-property">@area</span>.p.x += <span class="hljs-property">@speed</span>[<span class="hljs-property">@mode</span>]*vect.x*serv.screen.clock
+      <span class="hljs-property">@area</span>.p.y += <span class="hljs-property">@speed</span>[<span class="hljs-property">@mode</span>]*vect.y*serv.screen.clock
+      <span class="hljs-property">@frame</span> += <span class="hljs-number">0.3</span>*serv.screen.clock
+      <span class="hljs-property">@frame</span> = <span class="hljs-property">@len</span>[<span class="hljs-property">@mode</span>] <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span> &lt; <span class="hljs-property">@len</span>[<span class="hljs-property">@mode</span>] <span class="hljs-keyword">or</span> <span class="hljs-property">@frame</span> &gt;= <span class="hljs-property">@len</span>[<span class="hljs-number">1</span> + <span class="hljs-property">@mode</span>]</pre></div>
+
+
+
+<p>Select the correct tile from the spritesheet, based on <em>vector</em>, <em>mode</em>,
+and <em>frame</em>, and draw it to the screen based on <em>area</em>.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buff, offset)</span> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@sheet</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+    buff.map <span class="hljs-property">@sheet</span>, (<span class="hljs-number">3</span> + <span class="hljs-property">@vector</span>.get <span class="hljs-string">"spr"</span>), (Math.floor <span class="hljs-property">@frame</span>), <span class="hljs-property">@area</span>.s.x, <span class="hljs-property">@area</span>.s.y, <span class="hljs-property">@area</span>.p.x - offset.x, <span class="hljs-property">@area</span>.p.y - offset.y, <span class="hljs-number">1</span>, <span class="hljs-number">1</span></pre></div>
+
+
+
+<p>Detect collisions by calculating the distance from each edge of one
+sprite to the alternate edge of the other. If every distance is positive,
+there is an overlap, so determine the direction of least overlap and
+push the sprite out in that direction (if the sprite is solid), and/or
+trigger an event (if there is one to trigger).</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">collide</span>: <span class="hljs-function"><span class="hljs-params">(spr)</span> -&gt;</span>
+    off1 = spr.area.p.x + spr.carea.s.x - <span class="hljs-property">@area</span>.p.x - <span class="hljs-property">@carea</span>.p.x
+    off2 = spr.area.p.y + spr.carea.s.y - <span class="hljs-property">@area</span>.p.y - <span class="hljs-property">@carea</span>.p.y
+    off3 = <span class="hljs-property">@area</span>.p.x + <span class="hljs-property">@carea</span>.s.x - spr.area.p.x - spr.carea.p.x
+    off4 = <span class="hljs-property">@area</span>.p.y + <span class="hljs-property">@carea</span>.s.y - spr.area.p.y - spr.carea.p.y
+    offx = <span class="hljs-number">1</span>
+    offset = off1
+    <span class="hljs-keyword">if</span> off1 &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> off2 &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> off3 &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> off4 &gt; <span class="hljs-number">0</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@solid</span>
+        <span class="hljs-keyword">if</span> offset &gt; off2
+          offset = off2
+          offx = <span class="hljs-number">2</span>
+        <span class="hljs-keyword">if</span> offset &gt; off3
+          offset = off3
+          offx = <span class="hljs-number">3</span>
+        <span class="hljs-keyword">if</span> offset &gt; off4
+          offset = off4
+          offx = <span class="hljs-number">4</span>
+        spr.area.p.x -= offset <span class="hljs-keyword">if</span> offx <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+        spr.area.p.y -= offset <span class="hljs-keyword">if</span> offx <span class="hljs-keyword">is</span> <span class="hljs-number">2</span>
+        spr.area.p.x += offset <span class="hljs-keyword">if</span> offx <span class="hljs-keyword">is</span> <span class="hljs-number">3</span>
+        spr.area.p.y += offset <span class="hljs-keyword">if</span> offx <span class="hljs-keyword">is</span> <span class="hljs-number">4</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@aiscripts</span>.trigger?
+        spr.mode = <span class="hljs-number">0</span>
+        <span class="hljs-property">@aiscripts</span>.trigger <span class="hljs-keyword">this</span>, spr</pre></div>
+
+
+
+<p>When the action key is pressed, and a sprite is within the main sprite’s
+field of view (in this case, less than half a sprite away in the direction
+the main sprite is facing), a sprite might “interact” via a callback.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">interact</span>: <span class="hljs-function"><span class="hljs-params">(spr)</span> -&gt;</span>
+    vect = spr.vector.get <span class="hljs-string">"kbd"</span>
+    offx = <span class="hljs-keyword">new</span> rect spr.area.p.x + vect.x*spr.area.s.x/<span class="hljs-number">2</span>, spr.area.p.y + vect.y*spr.area.s.y/<span class="hljs-number">2</span>, spr.area.s.x, spr.area.s.y
+    off1 = <span class="hljs-keyword">new</span> vect offx.p.x + offx.s.x - <span class="hljs-property">@area</span>.p.x, offx.p.y + offx.s.y - <span class="hljs-property">@area</span>.p.y
+    off2 = <span class="hljs-keyword">new</span> vect <span class="hljs-property">@area</span>.p.x + <span class="hljs-property">@area</span>.s.x - offx.p.x, <span class="hljs-property">@area</span>.p.y + <span class="hljs-property">@area</span>.s.y - offx.p.y
+    <span class="hljs-keyword">if</span> off1.x &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> off1.y &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> off2.x &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> off2.y &gt; <span class="hljs-number">0</span>
+      spr.mode = <span class="hljs-number">0</span>
+      <span class="hljs-property">@aiscripts</span>.interact <span class="hljs-keyword">this</span>, spr</pre></div>
+
+
+
+<p>Gather and return data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-attribute">px</span>: <span class="hljs-property">@area</span>.p.x, <span class="hljs-attribute">py</span>: <span class="hljs-property">@area</span>.p.y, <span class="hljs-attribute">md</span>: <span class="hljs-property">@mode</span>, <span class="hljs-attribute">fr</span>: <span class="hljs-property">@frame</span>, <span class="hljs-attribute">vx</span>: <span class="hljs-property">@vector</span>.get <span class="hljs-string">"spr"</span></pre></div>
+
+
+
+<p>Distribute save data to be used.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    <span class="hljs-property">@area</span>.p.x = state.px
+    <span class="hljs-property">@area</span>.p.y = state.py
+    <span class="hljs-property">@mode</span> = state.md
+    <span class="hljs-property">@frame</span> = state.fr
+    <span class="hljs-property">@vector</span>.set <span class="hljs-string">"spr"</span>, state.vx</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - audio.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>audio.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>A wrapper for the HTML5 Audio element.</strong></p>
+<ul>
+<li>Support background music looping via <em>window.setInterval</em>.</li>
+<li>Support self-overlap via a redundant audio object.</li>
+</ul>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">audio</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(sndurl)</span> -&gt;</span> <span class="hljs-keyword">if</span> sndurl[sndurl.length - <span class="hljs-number">1</span>] <span class="hljs-keyword">is</span> <span class="hljs-string">"0"</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@data</span> = -<span class="hljs-number">1</span> <span class="hljs-keyword">else</span>
+    <span class="hljs-property">@mode</span> = <span class="hljs-attribute">stop</span>: <span class="hljs-number">0</span>, <span class="hljs-attribute">play</span>: <span class="hljs-number">1</span>, <span class="hljs-attribute">pause</span>: <span class="hljs-number">2</span>
+    <span class="hljs-property">@ii</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@oldset</span> = <span class="hljs-literal">no</span>
+    <span class="hljs-property">@newset</span> = <span class="hljs-literal">no</span>
+    <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@mode</span>.stop
+    <span class="hljs-property">@datamode</span> = <span class="hljs-property">@mode</span>.stop
+    <span class="hljs-property">@data</span> = <span class="hljs-keyword">new</span> Audio
+    <span class="hljs-property">@data</span>.src = sndurl
+    <span class="hljs-property">@data</span>.addEventListener <span class="hljs-string">"ended"</span>,<span class="hljs-function"> =&gt;</span>
+      <span class="hljs-property">@datamode</span> = <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@altdatamode</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+    <span class="hljs-property">@altdatamode</span> = <span class="hljs-property">@mode</span>.stop
+    <span class="hljs-property">@altdata</span> = <span class="hljs-keyword">new</span> Audio
+    <span class="hljs-property">@altdata</span>.src = sndurl
+    <span class="hljs-property">@altdata</span>.addEventListener <span class="hljs-string">"ended"</span>,<span class="hljs-function"> =&gt;</span>
+      <span class="hljs-property">@altdatamode</span> = <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@datamode</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+    <span class="hljs-property">@fade</span>()</pre></div>
+
+
+
+<p>Play the sound, if it is new or stopped.<br>Set up the background loop if the loop duration has been initialized.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">play</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@data</span> <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> (<span class="hljs-property">@sndmode</span> <span class="hljs-keyword">isnt</span> <span class="hljs-property">@mode</span>.pause <span class="hljs-keyword">or</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>)
+    <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@mode</span>.play <span class="hljs-keyword">if</span> <span class="hljs-property">@sndmode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.stop
+    <span class="hljs-property">@ii</span> = <span class="hljs-built_in">window</span>.setInterval (<span class="hljs-function">=&gt;</span> <span class="hljs-property">@play</span>()), <span class="hljs-number">1000</span>*<span class="hljs-property">@loop</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@loop</span>? <span class="hljs-keyword">and</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@datamode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@datamode</span> = <span class="hljs-property">@mode</span>.play
+      <span class="hljs-property">@data</span>.play()
+    <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@altdatamode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@altdatamode</span> = <span class="hljs-property">@mode</span>.play
+      <span class="hljs-property">@altdata</span>.play()</pre></div>
+
+
+
+<p>Stop the sound playing.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">stop</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@data</span> <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@mode</span>.stop
+    <span class="hljs-built_in">window</span>.clearInterval <span class="hljs-property">@ii</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+    <span class="hljs-property">@ii</span> = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@datamode</span> <span class="hljs-keyword">isnt</span> <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@datamode</span> = <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@data</span>.pause()
+      <span class="hljs-property">@data</span>.currentTime = <span class="hljs-number">0</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@altdatamode</span> <span class="hljs-keyword">isnt</span> <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@altdatamode</span> = <span class="hljs-property">@mode</span>.stop
+      <span class="hljs-property">@altdata</span>.pause()
+      <span class="hljs-property">@altdata</span>.currentTime = <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Pause (or mute) the sound if it is playing.<br>Muting in place of pausing occurs in background music
+and audio loops: since it is impossible to pause a
+<em>window.setInterval</em> countdown, attempting to actually
+pause looping audio will result in unwanted behavior.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">pause</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@data</span> <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@sndmode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.play
+    <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@mode</span>.pause
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@fade</span>() <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@datamode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.play
+        <span class="hljs-property">@datamode</span> = <span class="hljs-property">@mode</span>.pause
+        <span class="hljs-property">@data</span>.pause()
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@altdatamode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.play
+        <span class="hljs-property">@altdatamode</span> = <span class="hljs-property">@mode</span>.pause
+        <span class="hljs-property">@altdata</span>.pause()</pre></div>
+
+
+
+<p>Unpause (or unmute) the sound if it is paused.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">unpause</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@data</span> <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@sndmode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.pause
+    <span class="hljs-property">@sndmode</span> = <span class="hljs-property">@mode</span>.play
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@fade</span>() <span class="hljs-keyword">else</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@datamode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.pause
+        <span class="hljs-property">@datamode</span> = <span class="hljs-property">@mode</span>.play
+        <span class="hljs-property">@data</span>.play()
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@altdatamode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.pause
+        <span class="hljs-property">@altdatamode</span> = <span class="hljs-property">@mode</span>.play
+        <span class="hljs-property">@altdata</span>.play()</pre></div>
+
+
+
+<p>Set the volume of the sound.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">fade</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@data</span> <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    volume = <span class="hljs-keyword">if</span> serv.audio.muted <span class="hljs-keyword">or</span> (<span class="hljs-property">@sndmode</span> <span class="hljs-keyword">is</span> <span class="hljs-property">@mode</span>.pause <span class="hljs-keyword">and</span> <span class="hljs-property">@ii</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>) <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> serv.audio.volume
+    <span class="hljs-property">@data</span>.volume = volume
+    <span class="hljs-property">@altdata</span>.volume = volume</pre></div>
+
+
+
+<p>If this is not called every frame, <a href="sound.html">the sound won’t play</a>.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">step</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@newset</span> = <span class="hljs-literal">yes</span></pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

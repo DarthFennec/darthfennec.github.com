@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - aiscripts.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>aiscripts.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>Some common aiscript implementations.</strong></p>
+<p>Sprites can optionally have ai callback scripts. This class
+contains factory methods to generate some of the more common ones.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">aiscripts</span></span></pre></div>
+
+
+
+<p>Turn to face the main sprite, if it is within a given radius.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">watch</span>: <span class="hljs-function"><span class="hljs-params">(radius)</span> -&gt;</span>
+<span class="hljs-function">    <span class="hljs-params">(scenegraph)</span> -&gt;</span>
+      distance = (Math.pow <span class="hljs-property">@sprite</span>.area.p.x - scenegraph.focus.area.p.x, <span class="hljs-number">2</span>) + (Math.pow <span class="hljs-property">@sprite</span>.area.p.y - scenegraph.focus.area.p.y, <span class="hljs-number">2</span>)
+      <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"pts"</span>, <span class="hljs-property">@sprite</span>.area.p, scenegraph.focus.area.p <span class="hljs-keyword">if</span> distance &lt; radius*radius</pre></div>
+
+
+
+<p>Move and change direction randomly, given some stability of motion.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">random</span>: <span class="hljs-function"><span class="hljs-params">(stability)</span> -&gt;</span>
+<span class="hljs-function">    <span class="hljs-params">(scenegraph)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> Math.random() &gt; stability
+        <span class="hljs-property">@sprite</span>.mode = Math.floor Math.random()*<span class="hljs-number">3</span>
+        <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"spr"</span>, -<span class="hljs-number">3</span> + Math.floor Math.random()*<span class="hljs-number">8</span></pre></div>
+
+
+
+<p>Follow the main sprite:</p>
+<ul>
+<li>Run or walk after the main sprite, avoiding obstactles.</li>
+<li>Watch the main sprite without moving, if it is within a given radius.</li>
+<li>If the main sprite is too close, move out of the way.</li>
+</ul>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">follow</span>: <span class="hljs-function"><span class="hljs-params">(bumprad, inrad, outrad)</span> -&gt;</span>
+    graph = <span class="hljs-number">0</span>
+    path = <span class="hljs-number">0</span>
+    oldpos = <span class="hljs-keyword">new</span> vect -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>
+<span class="hljs-function">    <span class="hljs-params">(scenegraph)</span> -&gt;</span>
+      mapsrc = scenegraph[scenegraph.length - <span class="hljs-number">1</span>]
+      dist = <span class="hljs-keyword">new</span> vect (Math.abs <span class="hljs-property">@sprite</span>.area.p.x - scenegraph.focus.area.p.x), Math.abs <span class="hljs-property">@sprite</span>.area.p.y - scenegraph.focus.area.p.y
+      <span class="hljs-keyword">if</span> graph <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> graph = <span class="hljs-keyword">new</span> Graph mapsrc.grid.map <span class="hljs-function"><span class="hljs-params">(x)</span> -&gt;</span> x.map <span class="hljs-function"><span class="hljs-params">(y)</span> -&gt;</span> (<span class="hljs-keyword">if</span> mapsrc.coll[y] &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>)
+      distance = Math.max dist.x, dist.y
+      srcpos = <span class="hljs-keyword">new</span> vect (<span class="hljs-number">1</span> + Math.floor (<span class="hljs-property">@sprite</span>.area.p.x + <span class="hljs-property">@sprite</span>.carea.p.x)/mapsrc.tilesize.x),
+        <span class="hljs-number">1</span> + Math.floor (<span class="hljs-property">@sprite</span>.area.p.y + <span class="hljs-property">@sprite</span>.carea.p.y)/mapsrc.tilesize.y
+      destpos = <span class="hljs-keyword">new</span> vect (<span class="hljs-number">1</span> + Math.floor (scenegraph.focus.area.p.x + scenegraph.focus.carea.p.x)/mapsrc.tilesize.x),
+        <span class="hljs-number">1</span> + Math.floor (scenegraph.focus.area.p.y + scenegraph.focus.carea.p.y)/mapsrc.tilesize.y
+      <span class="hljs-keyword">if</span> oldpos.x <span class="hljs-keyword">isnt</span> destpos.x <span class="hljs-keyword">or</span> oldpos.y <span class="hljs-keyword">isnt</span> destpos.y
+        oldpos = <span class="hljs-keyword">new</span> vect destpos.x, destpos.y
+        path = astar.search graph.nodes, graph.nodes[srcpos.x][srcpos.y], graph.nodes[destpos.x][destpos.y]
+        path = path.filter <span class="hljs-function"><span class="hljs-params">(e, i, a)</span> -&gt;</span> <span class="hljs-keyword">if</span> a[i - <span class="hljs-number">1</span>]? <span class="hljs-keyword">and</span> a[i + <span class="hljs-number">1</span>]? <span class="hljs-keyword">then</span> (a[i - <span class="hljs-number">1</span>].x <span class="hljs-keyword">is</span> a[i + <span class="hljs-number">1</span>].x <span class="hljs-keyword">or</span> a[i - <span class="hljs-number">1</span>].y <span class="hljs-keyword">is</span> a[i + <span class="hljs-number">1</span>].y) <span class="hljs-keyword">else</span> <span class="hljs-literal">yes</span>
+      <span class="hljs-keyword">if</span> distance &lt;= bumprad
+        dirp = <span class="hljs-number">0</span>
+        dirn = <span class="hljs-number">0</span>
+        vctr = scenegraph.focus.vector.get <span class="hljs-string">"kbd"</span>
+        <span class="hljs-keyword">if</span> dist.x &lt; dist.y
+          <span class="hljs-keyword">if</span> vctr.y <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+            <span class="hljs-keyword">if</span> vctr.x <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"kbd"</span>, <span class="hljs-keyword">new</span> vect -vctr.x, <span class="hljs-number">0</span> <span class="hljs-keyword">else</span>
+              dirp += <span class="hljs-number">1</span> <span class="hljs-keyword">until</span> graph.input[destpos.x + dirp][destpos.y] <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+              dirn += <span class="hljs-number">1</span> <span class="hljs-keyword">until</span> graph.input[destpos.x - dirn][destpos.y] <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+              dirp += <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> dirp <span class="hljs-keyword">is</span> dirn <span class="hljs-keyword">and</span> scenegraph.focus.area.p.x + scenegraph.focus.area.s.x/<span class="hljs-number">2</span> - (destpos.x - <span class="hljs-number">1</span>)*mapsrc.tilesize.x &lt; mapsrc.tilesize.x/<span class="hljs-number">2</span>
+              <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"kbd"</span>, <span class="hljs-keyword">new</span> vect (<span class="hljs-keyword">if</span> dirp &gt; dirn <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>), <span class="hljs-number">0</span>
+            <span class="hljs-property">@sprite</span>.mode = <span class="hljs-number">2</span>
+        <span class="hljs-keyword">else</span>
+          <span class="hljs-keyword">if</span> vctr.x <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+            <span class="hljs-keyword">if</span> vctr.y <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"kbd"</span>, <span class="hljs-keyword">new</span> vect <span class="hljs-number">0</span>, -vctr.y <span class="hljs-keyword">else</span>
+              dirp += <span class="hljs-number">1</span> <span class="hljs-keyword">until</span> graph.input[destpos.x][destpos.y + dirp] <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+              dirn += <span class="hljs-number">1</span> <span class="hljs-keyword">until</span> graph.input[destpos.x][destpos.y - dirn] <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+              dirp += <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> dirp <span class="hljs-keyword">is</span> dirn <span class="hljs-keyword">and</span> scenegraph.focus.area.p.y + scenegraph.focus.area.s.y/<span class="hljs-number">2</span> - (destpos.y - <span class="hljs-number">1</span>)*mapsrc.tilesize.y &lt; mapsrc.tilesize.y/<span class="hljs-number">2</span>
+              <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"kbd"</span>, <span class="hljs-keyword">new</span> vect <span class="hljs-number">0</span>, <span class="hljs-keyword">if</span> dirp &gt; dirn <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>
+            <span class="hljs-property">@sprite</span>.mode = <span class="hljs-number">2</span>
+      <span class="hljs-keyword">if</span> bumprad &lt; distance &lt;= inrad
+        <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"pts"</span>, <span class="hljs-property">@sprite</span>.area.p, scenegraph.focus.area.p
+        <span class="hljs-property">@sprite</span>.mode = <span class="hljs-number">0</span>
+      <span class="hljs-keyword">if</span> inrad &lt; distance <span class="hljs-keyword">and</span> path.length &gt; <span class="hljs-number">0</span>
+        vectdir = <span class="hljs-keyword">new</span> vect
+        path.shift() <span class="hljs-keyword">if</span> path[<span class="hljs-number">0</span>].x <span class="hljs-keyword">is</span> srcpos.x <span class="hljs-keyword">and</span> path[<span class="hljs-number">0</span>].y <span class="hljs-keyword">is</span> srcpos.y
+        vectdir.x = <span class="hljs-keyword">if</span> path[<span class="hljs-number">0</span>].x &gt; srcpos.x <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> path[<span class="hljs-number">0</span>].x &lt; srcpos.x <span class="hljs-keyword">then</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+        vectdir.y = <span class="hljs-keyword">if</span> path[<span class="hljs-number">0</span>].y &gt; srcpos.y <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> path[<span class="hljs-number">0</span>].y &lt; srcpos.y <span class="hljs-keyword">then</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">else</span> <span class="hljs-number">0</span>
+        vectdir.x = -<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> vectdir.x <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@sprite</span>.area.p.x + <span class="hljs-number">2</span>*<span class="hljs-property">@sprite</span>.area.s.x &gt; mapsrc.tilesize.x*(srcpos.x + <span class="hljs-number">1</span>) <span class="hljs-keyword">and</span> graph.input[srcpos.x + <span class="hljs-number">1</span>][srcpos.y + vectdir.y] <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+        vectdir.y = -<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> vectdir.y <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@sprite</span>.area.p.y + <span class="hljs-number">2</span>*<span class="hljs-property">@sprite</span>.area.s.y &gt; mapsrc.tilesize.y*(srcpos.y + <span class="hljs-number">1</span>) <span class="hljs-keyword">and</span> graph.input[srcpos.x + vectdir.x][srcpos.y + <span class="hljs-number">1</span>] <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+        <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"kbd"</span>, vectdir
+        <span class="hljs-property">@sprite</span>.mode = <span class="hljs-keyword">if</span> outrad &lt; distance <span class="hljs-keyword">then</span> <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span></pre></div>
+
+
+
+<p>Move around when the player uses the keyboard.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">keyboard</span>:<span class="hljs-function"> -&gt;</span>
+<span class="hljs-function">    <span class="hljs-params">(scenegraph, keys)</span> -&gt;</span>
+      <span class="hljs-keyword">if</span> keys.right.state <span class="hljs-keyword">is</span> keys.left.state <span class="hljs-keyword">and</span> keys.down.state <span class="hljs-keyword">is</span> keys.up.state <span class="hljs-keyword">then</span> <span class="hljs-property">@sprite</span>.mode = <span class="hljs-number">0</span> <span class="hljs-keyword">else</span>
+        <span class="hljs-property">@sprite</span>.vector.set <span class="hljs-string">"kbd"</span>, <span class="hljs-keyword">new</span> vect keys.right.state - keys.left.state, keys.down.state - keys.up.state
+        <span class="hljs-property">@sprite</span>.mode = <span class="hljs-keyword">if</span> keys.run.state <span class="hljs-keyword">is</span> <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> <span class="hljs-number">1</span>
+      <span class="hljs-keyword">if</span> keys.act.poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">for</span> scene <span class="hljs-keyword">in</span> scenegraph <span class="hljs-keyword">when</span> scene.aiscripts.interact? <span class="hljs-keyword">then</span> scene.interact <span class="hljs-property">@sprite</span></pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - unit.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>unit.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The vector implementation.</strong></p>
+<p>Support 2D vectors stored with x and y components.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">vect</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@x</span>, <span class="hljs-property">@y</span>)</span> -&gt;</span></pre></div>
+
+
+
+<p><strong>The rectangle implementation.</strong></p>
+<p>A rectangular area, given by position and size vectors.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">rect</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(x, y, w, h)</span> -&gt;</span>
+    <span class="hljs-property">@p</span> = <span class="hljs-keyword">new</span> vect x, y
+    <span class="hljs-property">@s</span> = <span class="hljs-keyword">new</span> vect w, h</pre></div>
+
+
+
+<p><strong>The wrapper for angle/direction variables.</strong></p>
+<p>There are multiple ways to express a cardinal direction,
+and more than one of them are used in this engine. This class
+helps to easily convert from one representation to another.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">angle</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(type, val)</span> -&gt;</span> <span class="hljs-property">@set</span> type, val</pre></div>
+
+
+
+<ul>
+<li>“spr”: An integer representing a position on a sprite sheet.
+Labeled from 0 (up) to 4 (down), counting positive around clockwise and
+negative counterclockwise. Central (neutral) direction is -4.</li>
+<li>“kbd”: A vector, where each component is a direction: -1, 0, or 1.</li>
+<li>“vlc”: Like “kbd”, but normalized. Useful for finding velocity.</li>
+<li>“pts”: Extract a cardinal direction from two points.</li>
+</ul>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">get</span>: <span class="hljs-function"><span class="hljs-params">(type)</span> -&gt;</span> <span class="hljs-keyword">switch</span> type
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"spr"</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@value</span>
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"kbd"</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> vect ([<span class="hljs-number">0</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>])[<span class="hljs-number">4</span> + <span class="hljs-property">@value</span>], ([<span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>, <span class="hljs-number">1</span>])[<span class="hljs-number">4</span> + <span class="hljs-property">@value</span>]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"vlc"</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> vect ([<span class="hljs-number">0</span>, -<span class="hljs-number">0.707</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">0.707</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0.707</span>, <span class="hljs-number">1</span>, <span class="hljs-number">0.707</span>, <span class="hljs-number">0</span>])[<span class="hljs-number">4</span> + <span class="hljs-property">@value</span>], ([<span class="hljs-number">0</span>, <span class="hljs-number">0.707</span>, <span class="hljs-number">0</span>, -<span class="hljs-number">0.707</span>, -<span class="hljs-number">1</span>, -<span class="hljs-number">0.707</span>, <span class="hljs-number">0</span>, <span class="hljs-number">0.707</span>, <span class="hljs-number">1</span>])[<span class="hljs-number">4</span> + <span class="hljs-property">@value</span>]
+
+  <span class="hljs-attribute">set</span>: <span class="hljs-function"><span class="hljs-params">(type, val, val2)</span> -&gt;</span> <span class="hljs-keyword">switch</span> type
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"spr"</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@value</span> = val
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"kbd"</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@value</span> = ([[-<span class="hljs-number">1</span>, <span class="hljs-number">0</span>, <span class="hljs-number">1</span>], [-<span class="hljs-number">2</span>, -<span class="hljs-number">4</span>, <span class="hljs-number">2</span>], [-<span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">3</span>]])[<span class="hljs-number">1</span> + val.y][<span class="hljs-number">1</span> + val.x]
+    <span class="hljs-keyword">when</span> <span class="hljs-string">"pts"</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@value</span> = <span class="hljs-property">@getpts</span> val, val2</pre></div>
+
+
+
+<p>Given two points, find the closest cardinal direction from one to the other.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">getpts</span>: <span class="hljs-function"><span class="hljs-params">(a, b)</span> -&gt;</span>
+    xdist = a.x - b.x
+    ydist = a.y - b.y
+    <span class="hljs-keyword">if</span> xdist <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+      direction = <span class="hljs-keyword">if</span> ydist &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> <span class="hljs-number">4</span>
+    <span class="hljs-keyword">else</span>
+      slope = ydist/xdist
+      <span class="hljs-keyword">if</span> xdist &lt; <span class="hljs-number">0</span>
+        direction = <span class="hljs-number">4</span> <span class="hljs-keyword">if</span> slope &gt; <span class="hljs-number">2.41421356</span>
+        direction = <span class="hljs-number">3</span> <span class="hljs-keyword">if</span> <span class="hljs-number">0.414213562</span> &lt; slope &lt;= <span class="hljs-number">2.41421356</span>
+        direction = <span class="hljs-number">2</span> <span class="hljs-keyword">if</span> -<span class="hljs-number">0.414213562</span> &lt; slope &lt;= <span class="hljs-number">0.414213562</span>
+        direction = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> -<span class="hljs-number">2.41421356</span> &lt; slope &lt;= -<span class="hljs-number">0.414213562</span>
+        direction = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> slope &lt;= -<span class="hljs-number">2.41421356</span>
+      <span class="hljs-keyword">if</span> xdist &gt; <span class="hljs-number">0</span>
+        direction = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> slope &gt; <span class="hljs-number">2.41421356</span>
+        direction = -<span class="hljs-number">1</span> <span class="hljs-keyword">if</span> <span class="hljs-number">0.414213562</span> &lt; slope &lt;= <span class="hljs-number">2.41421356</span>
+        direction = -<span class="hljs-number">2</span> <span class="hljs-keyword">if</span> -<span class="hljs-number">0.414213562</span> &lt; slope &lt;= <span class="hljs-number">0.414213562</span>
+        direction = -<span class="hljs-number">3</span> <span class="hljs-keyword">if</span> -<span class="hljs-number">2.41421356</span> &lt; slope &lt;= -<span class="hljs-number">0.414213562</span>
+        direction = <span class="hljs-number">4</span> <span class="hljs-keyword">if</span> slope &lt;= -<span class="hljs-number">2.41421356</span>
+    direction</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

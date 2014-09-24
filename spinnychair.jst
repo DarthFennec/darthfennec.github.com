@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - <%= title %></title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+<% if (hasTitle) { %>
+<% var section = sections.shift(); %>
+<%= section.docsHtml %>
+<% if (!(/^\s*$/).test(section.codeText)) { %>
+<%= section.codeHtml %>
+<% } %>
+<% } else { %>
+<h1><%= title %></h1>
+<% } %>
+</div>
+<% for (var i = 0, l = sections.length; i<l; i++) { %>
+<% var section = sections[i]; %>
+<%= section.docsHtml %>
+<% if (!(/^\s*$/).test(section.codeText)) { %>
+<%= section.codeHtml %>
+<% } %>
+<% } %>
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

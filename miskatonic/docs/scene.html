@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - scene.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>scene.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The conventional scene system.</strong></p>
+<p>This class is built to handle conventional “walking around” scenes.
+A scene is simply a list of <a href="sprite.html">sprites</a>, and/or sprite-like
+objects such as <a href="tile.html">tile maps</a>.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">scenehandler</span></span>
+  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@currscene</span> = <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Initialize or reinitialize the scene, given a new sprite list. Pass 0 to remove the scene.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">initialize</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@currscene</span>)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@currscene</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-property">@sprites</span> = {}
+      <span class="hljs-property">@currscene</span>.focus = <span class="hljs-property">@currscene</span>[<span class="hljs-number">0</span>]
+      <span class="hljs-keyword">for</span> sprite, index <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span>
+        <span class="hljs-property">@sprites</span>[sprite.id] = sprite
+        <span class="hljs-property">@currscene</span>.focus = sprite <span class="hljs-keyword">if</span> sprite.focus
+        sprite.index = index</pre></div>
+
+
+
+<p>Render all the sprites, after solving all AI and collisions.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buffer)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@currscene</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-property">@currscene</span>.sort <span class="hljs-function"><span class="hljs-params">(a, b)</span> -&gt;</span> b.area.p.y - a.area.p.y
+      <span class="hljs-keyword">for</span> sprite <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span>
+        sprite.aiscripts.frame? <span class="hljs-property">@currscene</span>
+        sprite.step()
+        <span class="hljs-keyword">if</span> sprite.active <span class="hljs-keyword">then</span> (scene.collide sprite <span class="hljs-keyword">for</span> scene <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span> <span class="hljs-keyword">when</span> sprite <span class="hljs-keyword">isnt</span> scene)
+      f = <span class="hljs-keyword">new</span> vect <span class="hljs-property">@currscene</span>.focus.area.p.x + (<span class="hljs-property">@currscene</span>.focus.area.s.x - buffer.dims.x)/<span class="hljs-number">2</span>,
+        <span class="hljs-property">@currscene</span>.focus.area.p.y + (<span class="hljs-property">@currscene</span>.focus.area.s.y - buffer.dims.y)/<span class="hljs-number">2</span>
+      sprite.render buffer, f <span class="hljs-keyword">for</span> sprite <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span>
+      <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>On keyboard input, change the state of sprite 0, and check for input events to be handled.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">input</span>: <span class="hljs-function"><span class="hljs-params">(keys)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@currscene</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      sprite.aiscripts.input? <span class="hljs-property">@currscene</span>, keys <span class="hljs-keyword">for</span> sprite <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span>
+      <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>Gather and return data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@currscene</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+    ret = []
+    ret[sprite.index] = sprite.savestate() <span class="hljs-keyword">for</span> sprite <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span>
+    ret</pre></div>
+
+
+
+<p>Distribute saved data into the sprite list.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@currscene</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> state?
+      sprite.loadstate state[sprite.index] <span class="hljs-keyword">for</span> sprite <span class="hljs-keyword">in</span> <span class="hljs-property">@currscene</span>
+    <span class="hljs-literal">no</span></pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

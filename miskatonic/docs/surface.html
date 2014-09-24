@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - surface.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>surface.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>A wrapper for HTML drawable surfaces.</strong></p>
+<ul>
+<li>Abstract the distinction between an Image and a Canvas element.</li>
+<li>Abstract the distinction between a Canvas element and its 2D context, like so:<br><code>surfaceobj1.drawImage surfaceobj2, 0, 0</code><br>rather than:<br><code>drawingcontext.drawImage somecanvas, 0, 0</code></li>
+</ul>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">surface</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(arg)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> arg <span class="hljs-keyword">instanceof</span> HTMLImageElement <span class="hljs-keyword">or</span> arg <span class="hljs-keyword">instanceof</span> HTMLCanvasElement
+      <span class="hljs-property">@buf</span> = arg
+      <span class="hljs-property">@dims</span> = <span class="hljs-keyword">new</span> vect arg.width, arg.height
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-property">@buf</span> = <span class="hljs-built_in">document</span>.createElement <span class="hljs-string">"canvas"</span>
+      <span class="hljs-property">@size</span> arg
+    <span class="hljs-property">@ctx</span> = <span class="hljs-property">@buf</span>.getContext? <span class="hljs-string">"2d"</span></pre></div>
+
+
+
+<p>Set and/or get the size of the surface.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">size</span>: <span class="hljs-function"><span class="hljs-params">(newsize)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> newsize?
+      <span class="hljs-property">@dims</span> = newsize
+      <span class="hljs-property">@buf</span>.width = newsize.x
+      <span class="hljs-property">@buf</span>.height = newsize.y
+    <span class="hljs-property">@dims</span></pre></div>
+
+
+
+<p>Clear/fill the surface, with transparency/color.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">clear</span>: <span class="hljs-function"><span class="hljs-params">(opaque)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> opaque <span class="hljs-keyword">then</span> <span class="hljs-property">@ctx</span>.fillRect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-property">@dims</span>.x, <span class="hljs-property">@dims</span>.y
+    <span class="hljs-keyword">else</span> <span class="hljs-property">@ctx</span>.clearRect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-property">@dims</span>.x, <span class="hljs-property">@dims</span>.y</pre></div>
+
+
+
+<p>Wrapper for ctx.drawImage, supporting a wider range of
+placement options. Round all placement options to the
+nearest pixel, to keep HTML from interpolating pixel colors
+and making the images blurry.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">drawImage</span>: <span class="hljs-function"><span class="hljs-params">(src, d...)</span> -&gt;</span>
+    d[i] = Math.round v <span class="hljs-keyword">for</span> v, i <span class="hljs-keyword">in</span> d
+    <span class="hljs-keyword">switch</span> d.length
+      <span class="hljs-keyword">when</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@ctx</span>.drawImage src.buf, <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+      <span class="hljs-keyword">when</span> <span class="hljs-number">2</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@ctx</span>.drawImage src.buf, d[<span class="hljs-number">0</span>], d[<span class="hljs-number">1</span>]
+      <span class="hljs-keyword">when</span> <span class="hljs-number">4</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@ctx</span>.drawImage src.buf, d[<span class="hljs-number">0</span>], d[<span class="hljs-number">1</span>], d[<span class="hljs-number">2</span>], d[<span class="hljs-number">3</span>]
+      <span class="hljs-keyword">when</span> <span class="hljs-number">6</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@ctx</span>.drawImage src.buf, d[<span class="hljs-number">0</span>], d[<span class="hljs-number">1</span>], d[<span class="hljs-number">4</span>], d[<span class="hljs-number">5</span>], d[<span class="hljs-number">2</span>], d[<span class="hljs-number">3</span>], d[<span class="hljs-number">4</span>], d[<span class="hljs-number">5</span>]
+      <span class="hljs-keyword">when</span> <span class="hljs-number">8</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@ctx</span>.drawImage src.buf, d[<span class="hljs-number">0</span>], d[<span class="hljs-number">1</span>], d[<span class="hljs-number">2</span>], d[<span class="hljs-number">3</span>], d[<span class="hljs-number">4</span>], d[<span class="hljs-number">5</span>], d[<span class="hljs-number">6</span>], d[<span class="hljs-number">7</span>]</pre></div>
+
+
+
+<p>Like drawImage, but for tiles. Copy a tile from <em>src</em> with specified size
+at specified tile position, and put it at specified destination position,
+given a destination tile size. Note that the tile is not resized to match the
+destination tile size. If no size is given, the source size is used.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">map</span>: <span class="hljs-function"><span class="hljs-params">(src, sx, sy, sw, sh, dx, dy, dw, dh)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">not</span> dh?
+      dw = sw
+      dh = sh
+    <span class="hljs-property">@drawImage</span> src, sx*sw, sy*sh, dx*dw, dy*dh, sw, sh</pre></div>
+
+
+
+<p>Copy a destination-sized area out of <em>src</em>, at <em>pos</em>.<br>Trying to copy any part of an image that lies outside of its bounds
+results in failure, in HTML5. This function checks for that case,
+and takes steps to avoid it.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">layer</span>: <span class="hljs-function"><span class="hljs-params">(src, pos)</span> -&gt;</span>
+    x = <span class="hljs-property">@dims</span>.x/<span class="hljs-number">2</span> - pos.x
+    y = <span class="hljs-property">@dims</span>.y/<span class="hljs-number">2</span> - pos.y
+    w = x + src.dims.x
+    h = y + src.dims.y
+    sx = <span class="hljs-keyword">if</span> x &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> -x
+    dx = <span class="hljs-keyword">if</span> x &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> x
+    sy = <span class="hljs-keyword">if</span> y &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> -y
+    dy = <span class="hljs-keyword">if</span> y &lt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">0</span> <span class="hljs-keyword">else</span> y
+    fw = (<span class="hljs-keyword">if</span> w &gt; <span class="hljs-property">@dims</span>.x <span class="hljs-keyword">then</span> <span class="hljs-property">@dims</span>.x <span class="hljs-keyword">else</span> w) - dx
+    fh = (<span class="hljs-keyword">if</span> h &gt; <span class="hljs-property">@dims</span>.y <span class="hljs-keyword">then</span> <span class="hljs-property">@dims</span>.y <span class="hljs-keyword">else</span> h) - dy
+    <span class="hljs-property">@drawImage</span> src, sx, sy, dx, dy, fw, fh</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

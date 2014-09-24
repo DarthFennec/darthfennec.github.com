@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - scenenode.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>scenenode.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The scene node system.</strong></p>
+<p>A scene node represents any particular part of a game. Scenes, cutscenes,
+dialogues, sections, the title screen, even the game itself is a big scene
+node. All the scene nodes in a game are connected together as a single
+tree structure, with the game node as the root.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">scenenode</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@child</span>, <span class="hljs-property">@filelist</span>, <span class="hljs-property">@init</span>, <span class="hljs-property">@callback</span>)</span> -&gt;</span> <span class="hljs-property">@canreeval</span> = <span class="hljs-literal">yes</span></pre></div>
+
+
+
+<p>Tell a particular child node to initialize itself.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">initchild</span>: <span class="hljs-function"><span class="hljs-params">(idx, callback)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">typeof</span> <span class="hljs-property">@child</span>[idx] <span class="hljs-keyword">is</span> <span class="hljs-string">"string"</span>
+      json = serv.load.load <span class="hljs-property">@child</span>[idx]
+      serv.load.callbacks.push <span class="hljs-function">=&gt;</span>
+        child = serv.extern.setscene json.txt
+        child.initialize <span class="hljs-keyword">this</span>, idx
+        callback? child
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-property">@child</span>[idx].initialize <span class="hljs-keyword">this</span>, idx
+      callback? <span class="hljs-property">@child</span>[idx]</pre></div>
+
+
+
+<p>Initialize this node, load resources, and run it.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">initialize</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@parent</span>, <span class="hljs-property">@idx</span>)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@canreeval</span>
+      <span class="hljs-property">@file</span> = []
+      serv.audio.push()
+      serv.state = <span class="hljs-keyword">this</span>
+      preloads = <span class="hljs-keyword">for</span> c, i <span class="hljs-keyword">in</span> <span class="hljs-property">@child</span> <span class="hljs-keyword">when</span> c[<span class="hljs-number">0</span>] <span class="hljs-keyword">is</span> <span class="hljs-string">"~"</span> <span class="hljs-keyword">then</span> i
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@filelist</span>.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> preloads.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+        <span class="hljs-keyword">if</span> serv.load.callbacks.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@init</span>()
+        <span class="hljs-keyword">else</span> serv.load.callbacks.push <span class="hljs-function">=&gt;</span> <span class="hljs-property">@init</span>()
+      <span class="hljs-keyword">else</span>
+        <span class="hljs-property">@file</span> = <span class="hljs-keyword">for</span> file <span class="hljs-keyword">in</span> <span class="hljs-property">@filelist</span> <span class="hljs-keyword">then</span> serv.load.load file
+        <span class="hljs-property">@child</span>[i] = serv.load.load child[i].substr <span class="hljs-number">1</span> <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> preloads
+        serv.load.callbacks.push <span class="hljs-function">=&gt;</span>
+          <span class="hljs-property">@child</span>[i] = serv.extern.setscene <span class="hljs-property">@child</span>[i].txt <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> preloads
+          <span class="hljs-property">@init</span>()</pre></div>
+
+
+
+<p>Exit the current scene node, and return control back to the parent node.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">exitscene</span>: <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span>
+    serv.audio.clear()
+    serv.state = <span class="hljs-property">@parent</span>
+    <span class="hljs-property">@parent</span>.callback? <span class="hljs-property">@idx</span>
+    n</pre></div>
+
+
+
+<p>Crawl through the tree to find the branch to the currently running node, and return it.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">this</span> <span class="hljs-keyword">is</span> serv.scene <span class="hljs-keyword">then</span> []
+    <span class="hljs-keyword">else</span>
+      rtn = <span class="hljs-property">@parent</span>.savestate()
+      rtn.push <span class="hljs-property">@idx</span>
+      rtn</pre></div>
+
+
+
+<p>Crawl down the saved branch and initialize all in-use nodes.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(stack)</span> -&gt;</span> <span class="hljs-keyword">if</span> stack.length &gt; <span class="hljs-number">0</span>
+    idx = stack.shift()
+    <span class="hljs-property">@initchild</span> idx, <span class="hljs-function"><span class="hljs-params">(n)</span> -&gt;</span> n.loadstate stack</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

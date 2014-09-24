@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - engine.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>engine.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The central engine structure.</strong></p>
+<ul>
+<li>Contain the render stack, which is a stack of renderable layers, organized by z order.</li>
+<li>Pass i/o (keyboard and render) events to each layer in the stack, in order.</li>
+<li>Any renderable layer can “block” all layers below it, by returning <em>true</em>.</li>
+<li>Keep track of key binding data and the screen and renderbuffer surfaces.</li>
+</ul>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">engine</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@rends</span>, <span class="hljs-property">@screen</span>, keymap)</span> -&gt;</span>
+    <span class="hljs-property">@keys</span> = {}
+    <span class="hljs-keyword">for</span> key <span class="hljs-keyword">of</span> keymap <span class="hljs-keyword">then</span> <span class="hljs-property">@keys</span>[key] = <span class="hljs-attribute">val</span>: keymap[key], <span class="hljs-attribute">poll</span>: <span class="hljs-number">0</span>, <span class="hljs-attribute">state</span>: <span class="hljs-number">0</span>
+    <span class="hljs-property">@bgcolor</span> = <span class="hljs-string">"#000000"</span>
+    <span class="hljs-property">@buffer</span> = <span class="hljs-keyword">new</span> surface <span class="hljs-keyword">new</span> vect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+    <span class="hljs-property">@resize</span> <span class="hljs-property">@screen</span>.size()
+    serv.scene.initialize <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+    serv.reset()
+    serv.scene.initchild <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Change the size of the <em>screen</em> and <em>buffer</em> canvases.<br>Used during construction and when the aspect ratio is changed in the settings menu.
+Since setting the <em>width</em> of a canvas resets its state machine, the state must be reinitialized here:</p>
+<ul>
+<li><em>bgcolor</em> is the color beyond the edge of the map.</li>
+<li>The <em>line</em> and <em>stroke</em> values are for drawing the loading bar.</li>
+<li>Frames are rendered from the top down to support stack blocking.</li>
+</ul>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">resize</span>: <span class="hljs-function"><span class="hljs-params">(s)</span> -&gt;</span>
+    serv.<span class="hljs-built_in">global</span>.s = [s.x, s.y]
+    t = <span class="hljs-property">@buffer</span>.size()
+    <span class="hljs-keyword">if</span> s.x <span class="hljs-keyword">isnt</span> t.x <span class="hljs-keyword">or</span> s.y <span class="hljs-keyword">isnt</span> t.y
+      serv.screen.resize <span class="hljs-string">"display"</span>, s
+      <span class="hljs-property">@screen</span>.size s
+      <span class="hljs-property">@buffer</span>.size s
+      <span class="hljs-property">@buffer</span>.ctx.fillStyle = <span class="hljs-property">@bgcolor</span>
+      <span class="hljs-property">@buffer</span>.ctx.strokeStyle = <span class="hljs-string">"#ffffff"</span>
+      <span class="hljs-property">@buffer</span>.ctx.lineWidth = <span class="hljs-number">25</span>
+      <span class="hljs-property">@buffer</span>.ctx.lineCap = <span class="hljs-string">"round"</span>
+      <span class="hljs-property">@buffer</span>.ctx.globalCompositeOperation = <span class="hljs-string">"destination-over"</span></pre></div>
+
+
+
+<p>Intercept keyboard events and pass them down the stack.<br>Bind to the <em>keyUp</em> and <em>keyDown</em> events. Find the keycode in the list,
+update that key’s poll and state values, and inform the stack.
+The stack is called from the top down, and any layer has the option to
+block the remainder of the stack from receiving the event.<br><em>Poll</em> represents the keyboard state change that threw the event,
+and <em>state</em> represents the current state of any given key.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">input</span>: <span class="hljs-function"><span class="hljs-params">(block, code, data)</span> -&gt;</span>
+    importantkey = <span class="hljs-literal">no</span>
+    <span class="hljs-keyword">for</span> k <span class="hljs-keyword">of</span> <span class="hljs-property">@keys</span>
+      <span class="hljs-property">@keys</span>[k].poll = <span class="hljs-number">0</span>
+      <span class="hljs-keyword">for</span> keycode <span class="hljs-keyword">in</span> <span class="hljs-property">@keys</span>[k].val <span class="hljs-keyword">when</span> code <span class="hljs-keyword">is</span> keycode
+        importantkey = <span class="hljs-literal">yes</span>
+        <span class="hljs-property">@keys</span>[k].poll = data
+      <span class="hljs-property">@keys</span>[k].state = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@keys</span>[k].poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+      <span class="hljs-property">@keys</span>[k].state = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@keys</span>[k].poll <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">if</span> importantkey
+      <span class="hljs-keyword">for</span> rend <span class="hljs-keyword">in</span> <span class="hljs-property">@rends</span> <span class="hljs-keyword">when</span> rend.input <span class="hljs-property">@keys</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">break</span>
+      block()
+    <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>Step and rerender the stack at regular intervals.<br>Bind with <em>setInterval</em> or <em>requestAnimationFrame</em>, should run once per frame.
+Blit the buffer to the screen, clear the buffer, and draw the render stack.
+The stack is drawn from the top down, and any layer has the option to
+block the remainder of the stack from rendering.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">step</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-property">@screen</span>.drawImage <span class="hljs-property">@buffer</span>
+    <span class="hljs-property">@buffer</span>.clear <span class="hljs-literal">no</span>
+    <span class="hljs-keyword">for</span> rend <span class="hljs-keyword">in</span> <span class="hljs-property">@rends</span> <span class="hljs-keyword">when</span> rend.render <span class="hljs-property">@buffer</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">break</span>
+    <span class="hljs-property">@buffer</span>.clear <span class="hljs-literal">yes</span>
+    serv.audio.render()
+    <span class="hljs-literal">no</span></pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

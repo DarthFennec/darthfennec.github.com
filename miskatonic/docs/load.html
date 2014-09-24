@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - load.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>load.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The loading screen.</strong></p>
+<p>In a non-blocking loading environment such as a web browser, a resource
+might potentially be used before it’s fully loaded. This class attempts
+to counteract this problem.<br>External resources should be added to the list, and should be set to remove
+themselves from the list once they finish loading. This layer blocks the
+stack while objects remain in the list, and displays a progress bar showing
+the number of resources already loaded out of the total number of resources.<br>Also, keep track of a list of callback functions to run after any given collection
+of resources has finished loading. Keep track of a list of filetypes, so
+the engine can always figure out how to load any particular file. Also,
+provide helper functions to make resource loading easier.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">loader</span></span>
+  <span class="hljs-attribute">constructor</span>:<span class="hljs-function"> -&gt;</span>
+    <span class="hljs-property">@maxload</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@loadcount</span> = []
+    <span class="hljs-property">@callbacks</span> = []
+    <span class="hljs-property">@filetype</span> = {}
+    <span class="hljs-property">@filetype</span>[<span class="hljs-string">"img/"</span>] = <span class="hljs-function"><span class="hljs-params">(url)</span> -&gt;</span>
+      newf = <span class="hljs-keyword">new</span> surface <span class="hljs-keyword">new</span> Image
+      serv.load.loadcount.push newf
+      newf.buf.o<span class="hljs-function"><span class="hljs-title">nerror</span> = -&gt;</span> serv.load.err newf, url + <span class="hljs-string">".png"</span>
+      newf.buf.o<span class="hljs-function"><span class="hljs-title">nload</span> = -&gt;</span>
+        newf.dims.x = newf.buf.width
+        newf.dims.y = newf.buf.height
+        serv.load.finish newf
+      newf.buf.src = url + <span class="hljs-string">".png"</span>
+      newf</pre></div>
+
+
+
+<p>Draw a loading bar on the screen.<br>Block if something is being loaded.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buffer)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@loadcount</span>.length <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-property">@maxload</span> = <span class="hljs-property">@loadcount</span>.length <span class="hljs-keyword">if</span> <span class="hljs-property">@maxload</span> &lt; <span class="hljs-property">@loadcount</span>.length
+      loadwidth = (<span class="hljs-property">@maxload</span> - <span class="hljs-property">@loadcount</span>.length)*(buffer.dims.x - <span class="hljs-number">60</span>)/<span class="hljs-property">@maxload</span>
+      buffer.ctx.beginPath()
+      buffer.ctx.moveTo <span class="hljs-number">30</span>, buffer.dims.y - <span class="hljs-number">30</span>
+      buffer.ctx.lineTo loadwidth + <span class="hljs-number">30</span>, buffer.dims.y - <span class="hljs-number">30</span>
+      buffer.ctx.stroke()
+    <span class="hljs-keyword">else</span> <span class="hljs-property">@maxload</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@loadcount</span>.length <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Block if something is being loaded.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">input</span>: <span class="hljs-function"><span class="hljs-params">(keys)</span> -&gt;</span> <span class="hljs-property">@loadcount</span>.length <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Find the correct filetype and load the file from the server.
+Optionally, specify a range of files to load.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">load</span>: <span class="hljs-function"><span class="hljs-params">(file)</span> -&gt;</span>
+    type = file.substr <span class="hljs-number">0</span>, <span class="hljs-number">4</span>
+    matched = file.match <span class="hljs-regexp">/(.*)(?:\[)([0-9]+)(?:-)([0-9]+)(?:])(.*)/</span>
+    <span class="hljs-keyword">if</span> matched? <span class="hljs-keyword">then</span> ret = <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [(parseInt matched[<span class="hljs-number">2</span>], <span class="hljs-number">10</span>)..(parseInt matched[<span class="hljs-number">3</span>], <span class="hljs-number">10</span>)] <span class="hljs-keyword">then</span> <span class="hljs-property">@load</span> matched[<span class="hljs-number">1</span>] + i + matched[<span class="hljs-number">4</span>]
+    <span class="hljs-keyword">else</span> ret = <span class="hljs-property">@filetype</span>[type]? file
+    ret</pre></div>
+
+
+
+<p>Call when there is an error in loading a file.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">err</span>: <span class="hljs-function"><span class="hljs-params">(newf, fname)</span> -&gt;</span>
+    serv.screen.message <span class="hljs-string">"errorbox"</span>, <span class="hljs-string">"Error: failed to load "</span> + fname, <span class="hljs-number">10</span>
+    <span class="hljs-property">@finish</span> newf</pre></div>
+
+
+
+<p>Call when a file is finished loading. Removes itself from the list,
+checks if it’s the last one, and if it is, run all the callbacks.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">finish</span>: <span class="hljs-function"><span class="hljs-params">(newf)</span> -&gt;</span>
+    t = <span class="hljs-property">@loadcount</span>.indexOf newf
+    <span class="hljs-property">@loadcount</span>.splice t, <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> t <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@loadcount</span>.length <span class="hljs-keyword">is</span> <span class="hljs-number">0</span>
+      tmp = <span class="hljs-property">@callbacks</span>
+      <span class="hljs-property">@callbacks</span> = []
+      ctx() <span class="hljs-keyword">for</span> ctx <span class="hljs-keyword">in</span> tmp</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

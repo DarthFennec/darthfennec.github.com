@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - cutscene.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>cutscene.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The cutscene/dialogue/etc system.</strong></p>
+<p>This class is built to handle various kinds of cutscenes and cutscene-like
+scenes: particularly, this class works with sequential scenes. Cinematic
+cutscenes, dialogues, graphics effects, etc, are handled by this class.</p>
+<p>A cutscene is simply a list of objects, where each object represents a
+major change in the scene. The scene starts empty, and the first object
+in the list is applied. This frame object might contain various data about
+what the scene should look like: a new sound to play, new dialogue to display,
+or new elements to put in the scene. It might also contain a length (the number
+of frames to wait until the next frame object is applied, or 0 to wait for the
+action key to be pressed instead), and a <em>next</em> value (the array index of
+the next frame object to be applied, or -1 to end the cutscene, or a function
+that returns said value).</p>
+<p>Only the changes specified in a frame object will be applied; the rest of
+the scene will remain the same (except in the case of the <em>next</em> value,
+which will apply the succeeding frame if left unspecified). To remove
+something from the cutscene, -1 should be applied.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">cutscenehandler</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@charsheet</span>, <span class="hljs-property">@background</span>, <span class="hljs-property">@chars</span>, <span class="hljs-property">@chararea</span>, <span class="hljs-property">@charpos</span>, <span class="hljs-property">@nexttxtsnd</span>, <span class="hljs-property">@lasttxtsnd</span>)</span> -&gt;</span>
+    <span class="hljs-property">@text</span> = <span class="hljs-keyword">new</span> surface <span class="hljs-property">@background</span>.size()
+    <span class="hljs-property">@frames</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@choice</span> = -<span class="hljs-number">1</span></pre></div>
+
+
+
+<p>Set up a new cutscene, default the current frame, and run it.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">initialize</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@frames</span>)</span> -&gt;</span>
+    <span class="hljs-property">@frame</span> = <span class="hljs-attribute">len</span>: <span class="hljs-number">0</span>, <span class="hljs-attribute">elem</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">txt</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">overlay</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">snd</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">next</span>: <span class="hljs-number">0</span>
+    <span class="hljs-property">@framestate</span> = <span class="hljs-attribute">len</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">elem</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">txt</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">overlay</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">snd</span>: -<span class="hljs-number">1</span>, <span class="hljs-attribute">next</span>: -<span class="hljs-number">1</span>
+    <span class="hljs-property">@time</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@next</span>()</pre></div>
+
+
+
+<p>Check through every element of the frame, and render it to the screen.
+If the frame duration has been reached, apply the next frame.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buffer)</span> -&gt;</span>
+    <span class="hljs-property">@nexttxtsnd</span>.step()
+    <span class="hljs-property">@lasttxtsnd</span>.step()
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@frames</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@time</span> &gt; <span class="hljs-property">@frame</span>.len &gt; <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@next</span>()
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.snd <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@frame</span>.snd.step()
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.txt <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> buffer.drawImage <span class="hljs-property">@text</span>, <span class="hljs-property">@charpos</span>.x + (buffer.dims.x - <span class="hljs-property">@text</span>.dims.x)/<span class="hljs-number">2</span>, <span class="hljs-property">@charpos</span>.y + (buffer.dims.y - <span class="hljs-property">@text</span>.dims.y)/<span class="hljs-number">2</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.overlay <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.overlay.render buffer <span class="hljs-keyword">then</span> <span class="hljs-property">@frame</span>.overlay = -<span class="hljs-number">1</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+        <span class="hljs-keyword">for</span> p <span class="hljs-keyword">in</span> <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">then</span> p.render buffer
+        buffer.ctx.globalAlpha = <span class="hljs-number">1.0</span>
+      <span class="hljs-property">@time</span> += serv.screen.clock <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.len &gt; <span class="hljs-number">0</span>
+      <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>If waiting for the action key, and it gets pressed, apply the next frame.
+If displaying a choice box and an arrow key gets pressed, change the
+current choice and prerender the new box.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">input</span>: <span class="hljs-function"><span class="hljs-params">(keys)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@frames</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.len <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> keys.act.poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@next</span>()
+      <span class="hljs-keyword">if</span> keys.act.poll <span class="hljs-keyword">isnt</span> <span class="hljs-number">1</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@choice</span> <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+        <span class="hljs-property">@choice</span> += (<span class="hljs-keyword">if</span> <span class="hljs-property">@choice</span> &lt; <span class="hljs-number">2</span> <span class="hljs-keyword">then</span> <span class="hljs-number">2</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">2</span>) <span class="hljs-keyword">if</span> keys.up.poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span> <span class="hljs-keyword">or</span> keys.down.poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+        <span class="hljs-property">@choice</span> += (<span class="hljs-keyword">if</span> <span class="hljs-property">@choice</span>%<span class="hljs-number">2</span> <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>) <span class="hljs-keyword">if</span> keys.left.poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span> <span class="hljs-keyword">or</span> keys.right.poll <span class="hljs-keyword">is</span> <span class="hljs-number">1</span>
+        <span class="hljs-property">@drawchoice</span> <span class="hljs-property">@frame</span>.txt
+      <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">else</span> <span class="hljs-literal">no</span></pre></div>
+
+
+
+<p>Advance to the next frame. Decide which frame to use, make the appropriate
+changes from the current frame, restart the clock, tell any sounds to play,
+and tell any textboxes to prerender themselves.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">next</span>:<span class="hljs-function"> -&gt;</span>
+    nxt = <span class="hljs-property">@frame</span>.next
+    nxt = nxt <span class="hljs-property">@choice</span> <span class="hljs-keyword">if</span> <span class="hljs-string">"function"</span> <span class="hljs-keyword">is</span> <span class="hljs-keyword">typeof</span> nxt
+    <span class="hljs-property">@choice</span> = -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">if</span> nxt <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.txt <span class="hljs-keyword">isnt</span> <span class="hljs-property">@frames</span>[nxt].txt
+        <span class="hljs-keyword">if</span> <span class="hljs-property">@frames</span>[nxt].txt <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@lasttxtsnd</span>.play()
+        <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.txt <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@nexttxtsnd</span>.play()
+      <span class="hljs-property">@frames</span>[nxt].snd?.play?() <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.snd <span class="hljs-keyword">isnt</span> <span class="hljs-property">@frames</span>[nxt].snd
+      <span class="hljs-keyword">for</span> n <span class="hljs-keyword">of</span> <span class="hljs-property">@frames</span>[nxt]
+        <span class="hljs-property">@frame</span>[n] = <span class="hljs-property">@frames</span>[nxt][n]
+        <span class="hljs-property">@framestate</span>[n] = nxt
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.next <span class="hljs-keyword">is</span> nxt
+        <span class="hljs-property">@frame</span>.next += <span class="hljs-number">1</span>
+        <span class="hljs-property">@framestate</span>.next = -<span class="hljs-number">1</span>
+      <span class="hljs-property">@time</span> = <span class="hljs-number">0</span>
+      <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.txt <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+        <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.txt[<span class="hljs-number">0</span>] <span class="hljs-keyword">is</span> <span class="hljs-string">"\t"</span>
+          <span class="hljs-property">@choice</span> = <span class="hljs-number">0</span>
+          <span class="hljs-property">@drawchoice</span> <span class="hljs-property">@frame</span>.txt
+        <span class="hljs-keyword">else</span> <span class="hljs-property">@drawtext</span> <span class="hljs-property">@frame</span>.txt
+    <span class="hljs-keyword">else</span>
+      <span class="hljs-property">@lasttxtsnd</span>.play() <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.txt <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+      <span class="hljs-property">@frames</span> = <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Build a text string to draw, given a tab-delimited choice string.
+A choicebox is in the form <code>;t;c1;c2[;c3[;c4]]</code>, where <em>cX</em> are the choices,
+and <em>t</em> is the text that comes before them. Add a marker around the current
+choice, and space the choices evenly.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">drawchoice</span>: <span class="hljs-function"><span class="hljs-params">(texttodraw)</span> -&gt;</span>
+    choices = (texttodraw.substr <span class="hljs-number">1</span>).split <span class="hljs-string">"\t"</span>, <span class="hljs-number">5</span>
+    finalstring = choices.shift()
+    finalstring += <span class="hljs-string">"\n"</span> <span class="hljs-keyword">if</span> finalstring <span class="hljs-keyword">isnt</span> <span class="hljs-string">""</span>
+    <span class="hljs-property">@choice</span> -= <span class="hljs-number">2</span> <span class="hljs-keyword">if</span> choices.length <span class="hljs-keyword">is</span> <span class="hljs-number">2</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@choice</span> &gt; <span class="hljs-number">1</span>
+    <span class="hljs-property">@choice</span> -= <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> choices.length <span class="hljs-keyword">is</span> <span class="hljs-number">3</span> <span class="hljs-keyword">and</span> <span class="hljs-property">@choice</span> <span class="hljs-keyword">is</span> <span class="hljs-number">3</span>
+    choices[<span class="hljs-property">@choice</span>] = <span class="hljs-string">"&gt; "</span> + choices[<span class="hljs-property">@choice</span>] + <span class="hljs-string">" &lt;"</span>
+    <span class="hljs-keyword">for</span> currchoice <span class="hljs-keyword">in</span> choices
+      j = Math.floor ((Math.floor <span class="hljs-property">@chars</span>.s.x/<span class="hljs-number">2</span>) - currchoice.length)/<span class="hljs-number">2</span>
+      currchoice = <span class="hljs-string">" "</span> + currchoice + <span class="hljs-string">" "</span> <span class="hljs-keyword">for</span> [<span class="hljs-number">1.</span>.j]
+      currchoice += <span class="hljs-string">" "</span> <span class="hljs-keyword">if</span> currchoice.length%<span class="hljs-number">2</span> <span class="hljs-keyword">isnt</span> (<span class="hljs-property">@chars</span>.s.x/<span class="hljs-number">2</span>)%<span class="hljs-number">2</span>
+      finalstring += currchoice
+    <span class="hljs-property">@drawtext</span> finalstring</pre></div>
+
+
+
+<p>Draw the textbox. Copy over the background, go through the string,
+and copy over each character from the font sheet.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">drawtext</span>: <span class="hljs-function"><span class="hljs-params">(texttodraw)</span> -&gt;</span>
+    currline = <span class="hljs-number">0</span>
+    currchar = <span class="hljs-number">0</span>
+    <span class="hljs-property">@text</span>.clear <span class="hljs-literal">no</span>
+    <span class="hljs-property">@text</span>.drawImage <span class="hljs-property">@background</span>
+    <span class="hljs-keyword">for</span> chartodraw <span class="hljs-keyword">in</span> texttodraw <span class="hljs-keyword">when</span> currline &lt; <span class="hljs-property">@chars</span>.s.y
+      <span class="hljs-keyword">if</span> chartodraw <span class="hljs-keyword">isnt</span> <span class="hljs-string">"\n"</span> <span class="hljs-keyword">and</span> chartodraw <span class="hljs-keyword">isnt</span> <span class="hljs-string">" "</span>
+        sy = Math.floor (chartodraw.charCodeAt <span class="hljs-number">0</span>)/<span class="hljs-number">16</span>
+        sx = (chartodraw.charCodeAt <span class="hljs-number">0</span>) - <span class="hljs-number">16</span>*sy
+        <span class="hljs-property">@text</span>.map <span class="hljs-property">@charsheet</span>, sx, sy, <span class="hljs-property">@chararea</span>.s.x, <span class="hljs-property">@chararea</span>.s.y, <span class="hljs-property">@chars</span>.p.x + currchar, <span class="hljs-property">@chars</span>.p.y + currline, <span class="hljs-property">@chararea</span>.p.x, <span class="hljs-property">@chararea</span>.p.y
+      currchar += <span class="hljs-number">1</span>
+      <span class="hljs-keyword">if</span> currchar &gt;= <span class="hljs-property">@chars</span>.s.x <span class="hljs-keyword">or</span> chartodraw <span class="hljs-keyword">is</span> <span class="hljs-string">"\n"</span>
+        currchar = <span class="hljs-number">0</span>
+        currline += <span class="hljs-number">1</span></pre></div>
+
+
+
+<p>Gather and return data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@frames</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+    ret = {}
+    ret.overlay = <span class="hljs-property">@frame</span>.overlay.savestate() <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.overlay <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span> <span class="hljs-keyword">then</span> ret.elem = <span class="hljs-keyword">for</span> element <span class="hljs-keyword">in</span> <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">then</span> element.savestate()
+    ret.next = <span class="hljs-property">@frame</span>.next <span class="hljs-keyword">if</span> <span class="hljs-property">@framestate</span>.next <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span>
+    [<span class="hljs-property">@choice</span>, <span class="hljs-property">@time</span>, <span class="hljs-property">@framestate</span>, ret]</pre></div>
+
+
+
+<p>Distribute saved data into the frame.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(state)</span> -&gt;</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@frames</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> state?
+    <span class="hljs-property">@choice</span> = state[<span class="hljs-number">0</span>]
+    <span class="hljs-property">@time</span> = state[<span class="hljs-number">1</span>]
+    <span class="hljs-property">@framestate</span> = state[<span class="hljs-number">2</span>]
+    <span class="hljs-property">@frame</span>[n] = <span class="hljs-property">@frames</span>[<span class="hljs-property">@framestate</span>[n]][n] <span class="hljs-keyword">for</span> n <span class="hljs-keyword">of</span> <span class="hljs-property">@framestate</span> <span class="hljs-keyword">when</span> <span class="hljs-property">@framestate</span>[n] <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    <span class="hljs-property">@frame</span>.overlay.loadstate state[<span class="hljs-number">3</span>].overlay <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.overlay <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    element.loadstate state[<span class="hljs-number">3</span>].elem[index] <span class="hljs-keyword">for</span> element, index <span class="hljs-keyword">in</span> <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">if</span> <span class="hljs-property">@frame</span>.elem <span class="hljs-keyword">isnt</span> -<span class="hljs-number">1</span>
+    <span class="hljs-property">@frame</span>.next = state[<span class="hljs-number">3</span>].next <span class="hljs-keyword">if</span> <span class="hljs-property">@framestate</span>.next <span class="hljs-keyword">is</span> -<span class="hljs-number">1</span></pre></div>
+
+
+
+<p><strong>A color fade overlay element.</strong></p>
+<p>The simplest overlay element. Fade to or from a certain color over a given time.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">gradient</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@color</span>, <span class="hljs-property">@duration</span>, <span class="hljs-property">@type</span>)</span> -&gt;</span> <span class="hljs-property">@time</span> = <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Come up with a fade amount, set the audio volume, and render to the screen.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buffer)</span> -&gt;</span>
+    <span class="hljs-property">@time</span> += serv.screen.clock
+    serv.audio.volume = <span class="hljs-keyword">if</span> <span class="hljs-property">@type</span> <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> - <span class="hljs-property">@time</span><span class="hljs-regexp">/@duration else @time/</span><span class="hljs-property">@duration</span>
+    serv.audio.volume = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> serv.audio.volume &gt; <span class="hljs-number">1</span>
+    serv.audio.volume = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> serv.audio.volume &lt; <span class="hljs-number">0</span>
+    newalpha = <span class="hljs-keyword">if</span> <span class="hljs-property">@type</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@time</span><span class="hljs-regexp">/@duration else 1 - @time/</span><span class="hljs-property">@duration</span>
+    newalpha = <span class="hljs-number">1</span> <span class="hljs-keyword">if</span> newalpha &gt; <span class="hljs-number">1</span>
+    newalpha = <span class="hljs-number">0</span> <span class="hljs-keyword">if</span> newalpha &lt; <span class="hljs-number">0</span>
+    buffer.ctx.globalAlpha = newalpha
+    buffer.ctx.fillStyle = <span class="hljs-property">@color</span>
+    buffer.clear <span class="hljs-literal">yes</span>
+    buffer.ctx.globalAlpha = <span class="hljs-number">1.0</span>
+    buffer.ctx.fillStyle = serv.engine.bgcolor
+    <span class="hljs-property">@time</span> &gt; <span class="hljs-property">@duration</span></pre></div>
+
+
+
+<p>Gather and return data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@time</span></pre></div>
+
+
+
+<p>Distribute saved data.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@time</span>)</span> -&gt;</span></pre></div>
+
+
+
+<p><strong>An in-game cutscene element.</strong></p>
+<p>Used to run cutscenes on-the-fly, via engine graphics (scripted sequences).
+The script used is the <em>timeline</em> variable, which is an array of 4-tuples,
+each of which represents a change in the scene. Each tuple has the form:<br>[time, sprite, property, value]</p>
+<p>Multiple changes can be made at once (just set the time the same on each).
+This is an overlay element, because the overlay system allows the scene to
+render through, but does not allow the scene to assume any control.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">sequence</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@timeline</span>)</span> -&gt;</span>
+    <span class="hljs-property">@timeline</span>.sort <span class="hljs-function"><span class="hljs-params">(a, b)</span> -&gt;</span> <span class="hljs-keyword">if</span> a[<span class="hljs-number">0</span>] &gt; b[<span class="hljs-number">0</span>] <span class="hljs-keyword">then</span> <span class="hljs-number">1</span> <span class="hljs-keyword">else</span> -<span class="hljs-number">1</span>
+    <span class="hljs-keyword">for</span> elem <span class="hljs-keyword">in</span> serv.engine.rends <span class="hljs-keyword">when</span> elem.currscene? <span class="hljs-keyword">and</span> elem.currscene <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+      <span class="hljs-property">@scene</span> = elem.sprites
+      <span class="hljs-keyword">break</span>
+    <span class="hljs-property">@time</span> = <span class="hljs-number">0</span>
+    <span class="hljs-property">@frame</span> = <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Apply any new changes to the scene.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buffer)</span> -&gt;</span>
+    <span class="hljs-property">@time</span> += serv.screen.clock
+    <span class="hljs-keyword">while</span> <span class="hljs-property">@timeline</span>[<span class="hljs-property">@frame</span>]?[<span class="hljs-number">0</span>] &lt;= <span class="hljs-property">@time</span>
+      <span class="hljs-property">@scene</span>[<span class="hljs-property">@timeline</span>[<span class="hljs-property">@frame</span>][<span class="hljs-number">1</span>]][<span class="hljs-property">@timeline</span>[<span class="hljs-property">@frame</span>][<span class="hljs-number">2</span>]] = <span class="hljs-property">@timeline</span>[<span class="hljs-property">@frame</span>][<span class="hljs-number">3</span>]
+      <span class="hljs-property">@frame</span> += <span class="hljs-number">1</span>
+    <span class="hljs-keyword">not</span> <span class="hljs-property">@timeline</span>[<span class="hljs-property">@frame</span>]?</pre></div>
+
+
+
+<p>Gather and return data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@time</span></pre></div>
+
+
+
+<p>Distribute saved data.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@time</span>)</span> -&gt;</span></pre></div>
+
+
+
+<p><strong>An image cutscene element.</strong></p>
+<p>The most common cutscene element type, this is a simple still image. It can
+be controlled per-frame by a callback function, which can determine the
+position, size, and alpha of the particle.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">particle</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@image</span>, <span class="hljs-property">@callback</span>)</span> -&gt;</span>
+    <span class="hljs-property">@continue</span> = <span class="hljs-literal">no</span>
+    <span class="hljs-property">@time</span> = <span class="hljs-number">0</span></pre></div>
+
+
+
+<p>Run the callback, draw the results, and increment the frame counter.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buffer)</span> -&gt;</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@continue</span> <span class="hljs-keyword">then</span> <span class="hljs-property">@time</span> += serv.screen.clock <span class="hljs-keyword">else</span> <span class="hljs-property">@time</span> = <span class="hljs-number">0</span>
+    info = <span class="hljs-property">@callback</span> <span class="hljs-property">@time</span>
+    buffer.ctx.globalAlpha = info[<span class="hljs-number">3</span>]
+    dx = info[<span class="hljs-number">0</span>] + (buffer.dims.x - <span class="hljs-property">@image</span>.dims.x*info[<span class="hljs-number">2</span>])/<span class="hljs-number">2</span>
+    dy = info[<span class="hljs-number">1</span>] + (buffer.dims.y - <span class="hljs-property">@image</span>.dims.y*info[<span class="hljs-number">2</span>])/<span class="hljs-number">2</span>
+    buffer.drawImage <span class="hljs-property">@image</span>, dx, dy, info[<span class="hljs-number">2</span>]*<span class="hljs-property">@image</span>.dims.x, info[<span class="hljs-number">2</span>]*<span class="hljs-property">@image</span>.dims.y
+    <span class="hljs-property">@continue</span> = info[<span class="hljs-number">4</span>]</pre></div>
+
+
+
+<p>Gather and return data to be saved.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">savestate</span>:<span class="hljs-function"> -&gt;</span> <span class="hljs-property">@time</span></pre></div>
+
+
+
+<p>Distribute saved data.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">loadstate</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@time</span>)</span> -&gt;</span></pre></div>
+
+
+
+<p>Helper function for sinusoidal fades.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">fadeform</span>: <span class="hljs-function"><span class="hljs-params">(t, cycle)</span> -&gt;</span> <span class="hljs-number">0.5</span> + <span class="hljs-number">0.5</span>*Math.cos t*Math.PI/cycle</pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>

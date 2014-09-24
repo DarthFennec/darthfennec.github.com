@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html><head>
+<meta charset="UTF-8">
+<title>Spinny Chair - tile.coffee</title>
+<link rel="icon" href="/img/favicon.ico" type="image/x-icon">
+<link rel="stylesheet" href="/main.css" type="text/css">
+</head><body>
+<div id="header">
+<a id="title" href="/index.html">Spinny Chair</a>
+</div><div id="navbar">
+<ul id="menu"><li><a href="/index.html">Projects</a>
+</li><li><a href="http://github.com/DarthFennec">Github</a>
+</li><li><a href="http://www.linkedin.com/in/travissfoster">LinkedIn</a>
+</li></ul>
+</div><div id="frame" class="container"><div id="content" class="page">
+<div class="header">
+
+<h1>tile.coffee</h1>
+
+<div class="toc"><h3>Table of Contents</h3><ol>
+
+
+<li><a class="source" href="aiscripts.html">
+aiscripts.coffee
+</a></li>
+
+
+<li><a class="source" href="audio.html">
+audio.coffee
+</a></li>
+
+
+<li><a class="source" href="cutscene.html">
+cutscene.coffee
+</a></li>
+
+
+<li><a class="source" href="engine.html">
+engine.coffee
+</a></li>
+
+
+<li><a class="source" href="extscene.html">
+extscene.coffee
+</a></li>
+
+
+<li><a class="source" href="load.html">
+load.coffee
+</a></li>
+
+
+<li><a class="source" href="main.html">
+main.coffee
+</a></li>
+
+
+<li><a class="source" href="pause.html">
+pause.coffee
+</a></li>
+
+
+<li><a class="source" href="save.html">
+save.coffee
+</a></li>
+
+
+<li><a class="source" href="scene.html">
+scene.coffee
+</a></li>
+
+
+<li><a class="source" href="scenenode.html">
+scenenode.coffee
+</a></li>
+
+
+<li><a class="source" href="screen.html">
+screen.coffee
+</a></li>
+
+
+<li><a class="source" href="sound.html">
+sound.coffee
+</a></li>
+
+
+<li><a class="source" href="sprite.html">
+sprite.coffee
+</a></li>
+
+
+<li><a class="source" href="surface.html">
+surface.coffee
+</a></li>
+
+
+<li><a class="source" href="tile.html">
+tile.coffee
+</a></li>
+
+
+<li><a class="source" href="unit.html">
+unit.coffee
+</a></li>
+
+</ol></div>
+
+</div>
+
+
+<p><strong>The tilemap sprite.</strong></p>
+<p>A <a href="sprite.html">sprite</a> that represents the map, or scenery image: floors,
+walls, things that don’t move, etc. A map is made of rectangular tiles from a
+<em>tilesheet</em>, which are indexed starting from 0, increasing from left to right
+and then from top to bottom. The <em>grid</em> is a 2D array of integers, each
+element representing the index on the <em>tilesheet</em> of the tile in that spot.
+The <em>coll</em> is an array of collision indices, each representing the type of
+collision used for the tile of the same index: 0 for no collision, 1 for full
+rectangular collision, 2 for diagonal collision with a rising-sloped wall,
+and 3 for diagonal collision with a falling-sloped wall.</p>
+
+
+<div class='highlight'><pre><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">tileset</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">sprite</span></span>
+  <span class="hljs-attribute">constructor</span>: <span class="hljs-function"><span class="hljs-params">(<span class="hljs-property">@tilesize</span>, <span class="hljs-property">@tilesheet</span>, <span class="hljs-property">@coll</span>, <span class="hljs-property">@bgmusic</span>, bgcolor, grid)</span> -&gt;</span>
+    <span class="hljs-property">@bgmusic</span>.play() <span class="hljs-keyword">if</span> <span class="hljs-property">@bgmusic</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+    serv.engine.bgcolor = bgcolor
+    serv.engine.buffer.ctx.fillStyle = bgcolor
+    <span class="hljs-property">@coll</span>.push <span class="hljs-number">1</span>
+    <span class="hljs-keyword">super</span>
+      <span class="hljs-attribute">solid</span>: <span class="hljs-literal">yes</span>
+      <span class="hljs-attribute">area</span>: (<span class="hljs-keyword">new</span> rect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-property">@tilesize</span>.x, <span class="hljs-property">@tilesize</span>.y)
+      <span class="hljs-attribute">carea</span>: (<span class="hljs-keyword">new</span> rect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>, <span class="hljs-property">@tilesize</span>.x, <span class="hljs-property">@tilesize</span>.y)
+    gridsize = <span class="hljs-keyword">new</span> vect grid[<span class="hljs-number">0</span>].length, grid.length
+    <span class="hljs-property">@sheet</span> = <span class="hljs-keyword">new</span> surface <span class="hljs-keyword">new</span> vect <span class="hljs-property">@tilesize</span>.x*gridsize.x, <span class="hljs-property">@tilesize</span>.y*gridsize.y
+    width = <span class="hljs-property">@tilesheet</span>.dims.x/<span class="hljs-property">@tilesize</span>.x
+    <span class="hljs-property">@grid</span> = <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..(gridsize.x + <span class="hljs-number">2</span>)] <span class="hljs-keyword">then</span> <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..(gridsize.y + <span class="hljs-number">2</span>)]
+      <span class="hljs-keyword">if</span> i <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> j <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">or</span> i <span class="hljs-keyword">is</span> gridsize.x + <span class="hljs-number">1</span> <span class="hljs-keyword">or</span> j <span class="hljs-keyword">is</span> gridsize.y + <span class="hljs-number">1</span>
+        <span class="hljs-property">@coll</span>.length - <span class="hljs-number">1</span>
+      <span class="hljs-keyword">else</span> grid[j - <span class="hljs-number">1</span>][i - <span class="hljs-number">1</span>]
+    <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..gridsize.x] <span class="hljs-keyword">then</span> <span class="hljs-keyword">for</span> j <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span>..gridsize.y]
+      srcy = Math.floor <span class="hljs-property">@grid</span>[<span class="hljs-number">1</span> + i][<span class="hljs-number">1</span> + j]/width
+      srcx = <span class="hljs-property">@grid</span>[<span class="hljs-number">1</span> + i][<span class="hljs-number">1</span> + j] - srcy*width
+      <span class="hljs-property">@sheet</span>.map <span class="hljs-property">@tilesheet</span>, srcx, srcy, <span class="hljs-property">@tilesize</span>.x, <span class="hljs-property">@tilesize</span>.y, i, j
+<span class="hljs-function">    <span class="hljs-title">solve</span> = <span class="hljs-params">(y, m, x, b, i)</span> -&gt;</span>
+      t = <span class="hljs-number">1</span>/(m*m + <span class="hljs-number">1</span>)
+<span class="hljs-function">      <span class="hljs-params">(out, cx, px, dx)</span> -&gt;</span>
+        <span class="hljs-keyword">if</span> cx[y] &gt; m*cx[x] + b
+          k = <span class="hljs-keyword">if</span> i <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> vect dx.x, px.y <span class="hljs-keyword">else</span> px
+          <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> k[y] &gt; m*k[x] + b
+        <span class="hljs-keyword">else</span>
+          k = <span class="hljs-keyword">if</span> i <span class="hljs-keyword">then</span> <span class="hljs-keyword">new</span> vect px.x, dx.y <span class="hljs-keyword">else</span> dx
+          <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> k[y] &lt;= m*k[x] + b
+        tx = (k[x] + m*k[y] - m*b)*t
+        ty = m*tx + b
+        out[x] += tx - k[x]
+        out[y] += ty - k[y]
+    <span class="hljs-property">@solve</span> = [
+      solve <span class="hljs-string">"y"</span>, <span class="hljs-property">@tilesize</span>.y/<span class="hljs-property">@tilesize</span>.x, <span class="hljs-string">"x"</span>, -<span class="hljs-property">@tilesize</span>.y, <span class="hljs-literal">yes</span>
+      solve <span class="hljs-string">"y"</span>, -<span class="hljs-property">@tilesize</span>.y/<span class="hljs-property">@tilesize</span>.x, <span class="hljs-string">"x"</span>, <span class="hljs-property">@tilesize</span>.y, <span class="hljs-literal">no</span>
+      solve <span class="hljs-string">"y"</span>, <span class="hljs-property">@tilesize</span>.y/<span class="hljs-property">@tilesize</span>.x, <span class="hljs-string">"x"</span>, <span class="hljs-property">@tilesize</span>.y, <span class="hljs-literal">yes</span>
+      solve <span class="hljs-string">"y"</span>, -<span class="hljs-property">@tilesize</span>.y/<span class="hljs-property">@tilesize</span>.x, <span class="hljs-string">"x"</span>, <span class="hljs-number">3</span>*<span class="hljs-property">@tilesize</span>.y, <span class="hljs-literal">no</span>
+      solve <span class="hljs-string">"y"</span>, -<span class="hljs-property">@tilesize</span>.y/<span class="hljs-property">@tilesize</span>.x, <span class="hljs-string">"x"</span>, <span class="hljs-number">2</span>*<span class="hljs-property">@tilesize</span>.y, <span class="hljs-literal">no</span>
+      solve <span class="hljs-string">"y"</span>, <span class="hljs-property">@tilesize</span>.y/<span class="hljs-property">@tilesize</span>.x, <span class="hljs-string">"x"</span>, <span class="hljs-number">0</span>, <span class="hljs-literal">yes</span>
+      solve <span class="hljs-string">"y"</span>, <span class="hljs-number">0</span>, <span class="hljs-string">"x"</span>, <span class="hljs-property">@tilesize</span>.y, <span class="hljs-literal">no</span>
+      solve <span class="hljs-string">"x"</span>, <span class="hljs-number">0</span>, <span class="hljs-string">"y"</span>, <span class="hljs-property">@tilesize</span>.x, <span class="hljs-literal">no</span> ]</pre></div>
+
+
+
+<p>We don’t need a step function, so do nothing.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">step</span>:<span class="hljs-function"> -&gt;</span></pre></div>
+
+
+
+<p>Step the background music, and blit the map to the screen.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">render</span>: <span class="hljs-function"><span class="hljs-params">(buff, offset)</span> -&gt;</span>
+    <span class="hljs-property">@bgmusic</span>.step() <span class="hljs-keyword">if</span> <span class="hljs-property">@bgmusic</span> <span class="hljs-keyword">isnt</span> <span class="hljs-number">0</span>
+    buff.layer <span class="hljs-property">@sheet</span>, <span class="hljs-keyword">new</span> vect offset.x + buff.dims.x/<span class="hljs-number">2</span>, offset.y + buff.dims.y/<span class="hljs-number">2</span></pre></div>
+
+
+
+<p>Check if the given sprite collides with its surrounding tiles.<br>Find the four tiles that surround the sprite, and check their collision
+types. Filter out the collisions that are too far away, and solve the rest.</p>
+
+
+<div class='highlight'><pre>  <span class="hljs-attribute">collide</span>: <span class="hljs-function"><span class="hljs-params">(spr)</span> -&gt;</span> <span class="hljs-keyword">loop</span>
+    walls = [<span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>, <span class="hljs-literal">no</span>]
+    pixel = <span class="hljs-keyword">new</span> vect (spr.area.p.x + spr.carea.p.x)%<span class="hljs-property">@tilesize</span>.x,
+      (spr.area.p.y + spr.carea.p.y)%<span class="hljs-property">@tilesize</span>.y
+    dixel = <span class="hljs-keyword">new</span> vect pixel.x - spr.carea.p.x + spr.carea.s.x,
+      pixel.y - spr.carea.p.y + spr.carea.s.y
+    center = <span class="hljs-keyword">new</span> vect (pixel.x + dixel.x)/<span class="hljs-number">2</span>, (pixel.y + dixel.y)/<span class="hljs-number">2</span>
+    block = <span class="hljs-keyword">new</span> vect (<span class="hljs-number">1</span> + Math.floor (spr.area.p.x + spr.carea.p.x)/<span class="hljs-property">@tilesize</span>.x),
+      <span class="hljs-number">1</span> + Math.floor (spr.area.p.y + spr.carea.p.y)/<span class="hljs-property">@tilesize</span>.y
+    <span class="hljs-keyword">for</span> n, i <span class="hljs-keyword">in</span> [[<span class="hljs-number">1</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">0</span>], [<span class="hljs-number">0</span>, <span class="hljs-number">1</span>], [<span class="hljs-number">1</span>, <span class="hljs-number">1</span>]]
+      <span class="hljs-keyword">switch</span> <span class="hljs-property">@coll</span>[<span class="hljs-property">@grid</span>[block.x + n[<span class="hljs-number">0</span>]][block.y + n[<span class="hljs-number">1</span>]]]
+        <span class="hljs-keyword">when</span> <span class="hljs-number">1</span>
+          walls[<span class="hljs-number">3</span>*i] = <span class="hljs-keyword">not</span> walls[<span class="hljs-number">3</span>*i]
+          walls[<span class="hljs-number">3</span>*i + <span class="hljs-number">3</span>] = <span class="hljs-keyword">not</span> walls[<span class="hljs-number">3</span>*i + <span class="hljs-number">3</span>]
+        <span class="hljs-keyword">when</span> <span class="hljs-number">2</span> <span class="hljs-keyword">then</span> walls[<span class="hljs-number">3</span>*i + <span class="hljs-number">1</span>] = <span class="hljs-literal">yes</span>
+        <span class="hljs-keyword">when</span> <span class="hljs-number">3</span> <span class="hljs-keyword">then</span> walls[<span class="hljs-number">3</span>*i + <span class="hljs-number">2</span>] = <span class="hljs-literal">yes</span>
+    walls[<span class="hljs-number">0</span>] = walls[<span class="hljs-number">0</span>] <span class="hljs-keyword">isnt</span> walls.pop()
+    <span class="hljs-keyword">if</span> <span class="hljs-property">@tilesize</span>.x &lt; dixel.x <span class="hljs-keyword">and</span> <span class="hljs-property">@tilesize</span>.y &lt; dixel.y
+      best = <span class="hljs-attribute">val</span>: <span class="hljs-number">0</span>, <span class="hljs-attribute">idx</span>: -<span class="hljs-number">1</span>
+      dist = [dixel.x - <span class="hljs-property">@tilesize</span>.x, <span class="hljs-property">@tilesize</span>.y - pixel.y,
+        <span class="hljs-property">@tilesize</span>.x - pixel.x, dixel.y - <span class="hljs-property">@tilesize</span>.y, dixel.x - <span class="hljs-property">@tilesize</span>.x]
+      <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span><span class="hljs-number">.3</span>]
+        diag = <span class="hljs-attribute">val</span>: (Math.min dist[i], dist[i + <span class="hljs-number">1</span>]), <span class="hljs-attribute">idx</span>: <span class="hljs-number">3</span>*i + i%<span class="hljs-number">2</span> + <span class="hljs-number">1</span>
+        best = <span class="hljs-attribute">val</span>: dist[i], <span class="hljs-attribute">idx</span>: <span class="hljs-number">3</span>*i <span class="hljs-keyword">if</span> walls[<span class="hljs-number">3</span>*i] <span class="hljs-keyword">and</span> dist[i] &gt; best.val
+        best = diag <span class="hljs-keyword">if</span> walls[diag.idx] <span class="hljs-keyword">and</span> diag.val &gt; best.val
+        walls[<span class="hljs-number">3</span>*i] = walls[diag.idx] = <span class="hljs-literal">no</span>
+      walls[best.idx] = <span class="hljs-literal">yes</span>
+    <span class="hljs-keyword">else</span>
+      walls[<span class="hljs-number">0</span>] = walls[<span class="hljs-number">9</span>] = walls[<span class="hljs-number">10</span>] = walls[<span class="hljs-number">11</span>] = <span class="hljs-literal">no</span>
+      walls[<span class="hljs-number">1</span>] = walls[<span class="hljs-number">2</span>] = walls[<span class="hljs-number">3</span>] = <span class="hljs-literal">no</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@tilesize</span>.x &gt;= dixel.x
+      walls[<span class="hljs-number">6</span>] = walls[<span class="hljs-number">7</span>] = walls[<span class="hljs-number">8</span>] = <span class="hljs-literal">no</span> <span class="hljs-keyword">if</span> <span class="hljs-property">@tilesize</span>.y &gt;= dixel.y
+    collisions = [walls[<span class="hljs-number">2</span>], walls[<span class="hljs-number">4</span>], walls[<span class="hljs-number">8</span>], walls[<span class="hljs-number">10</span>],
+      walls[<span class="hljs-number">1</span>] <span class="hljs-keyword">or</span> walls[<span class="hljs-number">7</span>], walls[<span class="hljs-number">5</span>] <span class="hljs-keyword">or</span> walls[<span class="hljs-number">11</span>],
+      walls[<span class="hljs-number">0</span>] <span class="hljs-keyword">or</span> walls[<span class="hljs-number">6</span>], walls[<span class="hljs-number">3</span>] <span class="hljs-keyword">or</span> walls[<span class="hljs-number">9</span>]]
+    offset = <span class="hljs-keyword">new</span> vect <span class="hljs-number">0</span>, <span class="hljs-number">0</span>
+    <span class="hljs-property">@solve</span>[i] offset, center, pixel, dixel <span class="hljs-keyword">for</span> i <span class="hljs-keyword">in</span> [<span class="hljs-number">0.</span><span class="hljs-number">.7</span>] <span class="hljs-keyword">when</span> collisions[i]
+    spr.area.p.x += offset.x
+    spr.area.p.y += offset.y
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">if</span> offset.x <span class="hljs-keyword">is</span> <span class="hljs-number">0</span> <span class="hljs-keyword">and</span> offset.y <span class="hljs-keyword">is</span> <span class="hljs-number">0</span></pre></div>
+
+
+</div></div>
+<div id="footer"><div id="footertext">
+&copy; DarthFennec (Travis Foster)
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/">
+<img alt="Creative Commons License" style="border-width:0"
+src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a>
+</div></div>
+</body></html>
